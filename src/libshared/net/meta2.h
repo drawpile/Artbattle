@@ -23,6 +23,7 @@
 
 #include <QString>
 #include <QList>
+#include <QJsonDocument>
 
 namespace protocol {
 
@@ -217,6 +218,29 @@ private:
 	uint16_t m_id;
 };
 
+/**
+ * @brief ArtBattle edition extension control message
+ */
+class ExtensionCmd : public Message {
+public:
+	ExtensionCmd(uint8_t ctx, const QByteArray &msg) : Message(MSG_EXTENSION, ctx), m_msg(msg) {}
+	ExtensionCmd(uint8_t ctx, const QJsonDocument &doc) : Message(MSG_EXTENSION, ctx), m_msg(doc.toJson(QJsonDocument::Compact)) {}
+
+	static ExtensionCmd *deserialize(uint8_t ctxid, const uchar *data, uint len);
+	static ExtensionCmd *fromText(uint8_t ctx, const Kwargs &kwargs);
+
+	QJsonDocument doc() const;
+
+	QString messageName() const override { return QStringLiteral("extensioncmd"); }
+
+protected:
+	int payloadLength() const override;
+	int serializePayload(uchar *data) const override;
+	Kwargs kwargs() const override;
+
+private:
+	QByteArray m_msg;
+};
 
 }
 

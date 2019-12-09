@@ -43,6 +43,7 @@ private slots:
 		QTest::newRow("layeracl") << (Message*)new LayerACL(13, 0x1122, 0x01, 0x02, QList<uint8_t>() << 3 << 4 << 5);
 		QTest::newRow("featureaccess") << (Message*)new FeatureAccessLevels(14, (const uint8_t*)"\0\1\2\3\0\1\2\3\0");
 		QTest::newRow("defaultlayer") << (Message*)new DefaultLayer(14, 0x1401);
+		QTest::newRow("extensioncmd") << (Message*)new ExtensionCmd(99, "{\"hello\":\"world\"}");
 
 		QTest::newRow("undopoint") << (Message*)new UndoPoint(15);
 		QTest::newRow("canvasresize") << (Message*)new CanvasResize(16, -0xfff, 0xaaa, -0xbbb, 0xccc);

@@ -152,6 +152,7 @@ Parser::Result Parser::parseLine(const QString &line)
 	else FROMTEXT("layeracl", LayerACL);
 	else FROMTEXT("featureaccess", FeatureAccessLevels);
 	else FROMTEXT("defaultlayer", DefaultLayer);
+	else FROMTEXT("extensioncmd", ExtensionCmd);
 	else FROMTEXT("resize", CanvasResize);
 	else FROMTEXT("background", CanvasBackground);
 	else FROMTEXT("newlayer", LayerCreate);

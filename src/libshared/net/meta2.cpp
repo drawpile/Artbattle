@@ -305,4 +305,46 @@ DefaultLayer *DefaultLayer::fromText(uint8_t ctx, const Kwargs &kwargs)
 		);
 }
 
+ExtensionCmd *ExtensionCmd::deserialize(uint8_t ctxid, const uchar *data, uint len)
+{
+	return new ExtensionCmd(ctxid, QByteArray((const char*)data, len));
+}
+
+ExtensionCmd *ExtensionCmd::fromText(uint8_t ctx, const Kwargs &kwargs)
+{
+	return new ExtensionCmd(
+		ctx,
+		kwargs["data"].toUtf8()
+		);
+}
+
+int ExtensionCmd::serializePayload(uchar *data) const
+{
+	const int len = payloadLength();
+	memcpy(data, m_msg.constData(), len);
+	return len;
+}
+
+int ExtensionCmd::payloadLength() const
+{
+	return qMin(0xffff, m_msg.length());
+}
+
+QJsonDocument ExtensionCmd::doc() const
+{
+	QJsonParseError e;
+	QJsonDocument d = QJsonDocument::fromJson(m_msg, &e);
+	if(e.error != QJsonParseError::NoError) {
+		qWarning("JSON parse error: %s", qPrintable(e.errorString()));
+	}
+	return d;
+}
+
+Kwargs ExtensionCmd::kwargs() const
+{
+	Kwargs kw;
+	kw["data"] = QString::fromUtf8(m_msg);
+	return kw;
+}
+
 }

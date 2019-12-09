@@ -64,6 +64,7 @@ NullableMessageRef OpaqueMessage::decode(MessageType type, uint8_t ctx, const uc
 	case MSG_FEATURE_LEVELS: msg = FeatureAccessLevels::deserialize(ctx, data, len); break;
 	case MSG_LAYER_DEFAULT: msg = DefaultLayer::deserialize(ctx, data, len); break;
 	case MSG_FILTERED: return Filtered::deserialize(ctx, data, len);
+	case MSG_EXTENSION: msg = ExtensionCmd::deserialize(ctx, data, len); break;
 
 	case MSG_CANVAS_RESIZE: msg = CanvasResize::deserialize(ctx, data, len); break;
 	case MSG_LAYER_CREATE: msg = LayerCreate::deserialize(ctx, data, len); break;
