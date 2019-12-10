@@ -99,6 +99,10 @@ Protocol stability promises:
  * New server features may be added at any time, but they should not break older clients,
    nor should a missing feature break newer clients.
 
+### Protocol dp:4.22.2 (2.1 series ArtBattle edition)
+
+ * Added `MSG_EXTENSION` for handicap control
+
 ### Protocol dp:4.21.2 (2.1.9)
  * User 0 (server) is now always treated as Operator tier. (Change for experimental smart server)
 

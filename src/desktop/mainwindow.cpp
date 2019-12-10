@@ -2120,7 +2120,7 @@ void MainWindow::markSpotForRecording()
 void MainWindow::about()
 {
 	QMessageBox::about(nullptr, tr("About Drawpile"),
-			QStringLiteral("<p><b>Drawpile %1</b><br>").arg(DRAWPILE_VERSION) +
+			QStringLiteral("<p><b>Drawpile %1 Art Battle Edition</b><br>").arg(DRAWPILE_VERSION) +
 			tr("A collaborative drawing program.") + QStringLiteral("</p>"
 
 			"<p>Copyright © 2006-2019 Calle Laakkonen</p>"
