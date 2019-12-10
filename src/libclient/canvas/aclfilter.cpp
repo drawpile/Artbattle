@@ -223,6 +223,9 @@ bool AclFilter::filterMessage(const protocol::Message &msg)
 	case MSG_LASERTRAIL:
 		return tier <= featureTier(Feature::Laser);
 
+	case MSG_EXTENSION: // ArtBattle extension: handicaps can only be assigned by ops
+		return tier == Tier::Op;
+
 	case MSG_CANVAS_RESIZE: return tier <= featureTier(Feature::Resize);
 	case MSG_PUTTILE: return tier == Tier::Op;
 	case MSG_CANVAS_BACKGROUND: return tier <= featureTier(Feature::Background);

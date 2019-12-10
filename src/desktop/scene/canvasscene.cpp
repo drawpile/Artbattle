@@ -53,6 +53,9 @@ CanvasScene::CanvasScene(QObject *parent)
 	connect(_animTickTimer, &QTimer::timeout, this, &CanvasScene::advanceUsermarkerAnimation);
 	_animTickTimer->setInterval(200);
 	_animTickTimer->start(200);
+
+	m_handicaps = new handicaps::HandicapState(this);
+	connect(m_handicaps, &handicaps::HandicapState::blackout, m_canvasItem, &CanvasItem::setBlackoutHandicap);
 }
 
 CanvasScene::~CanvasScene()
@@ -96,6 +99,8 @@ void CanvasScene::initCanvas(canvas::CanvasModel *model)
 	for(UserMarkerItem *i : m_usermarkers)
 		delete i;
 	m_usermarkers.clear();
+
+		connect(model, &canvas::CanvasModel::handicapActivated, m_handicaps, &handicaps::HandicapState::activate);
 	
 	QList<QRectF> regions;
 	regions.append(sceneRect());

@@ -38,6 +38,10 @@ namespace canvas {
 	class Selection;
 }
 
+namespace handicaps {
+	class HandicapState;
+}
+
 //! Drawing board related classes
 namespace drawingboard {
 
@@ -79,6 +83,8 @@ public:
 	canvas::CanvasModel *model() const { return m_model; }
 
 	paintcore::LayerStackPixmapCacheObserver *layerStackObserver() { return m_layerstackObserver; }
+
+	handicaps::HandicapState *handicaps() { return m_handicaps; }
 
 public slots:
 	//! Show annotation borders
@@ -137,6 +143,8 @@ private:
 	CanvasItem *m_canvasItem;
 
 	canvas::CanvasModel *m_model;
+
+	handicaps::HandicapState *m_handicaps;
 
 	//! Laser pointer trails
 	QHash<int, LaserTrailItem*> m_lasertrails;

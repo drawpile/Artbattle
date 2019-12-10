@@ -32,6 +32,9 @@
 #include <QObject>
 #include <QPointer>
 
+class QJsonObject;
+class QDateTime;
+
 namespace protocol {
 	class UserJoin;
 	class UserLeave;
@@ -151,6 +154,9 @@ signals:
 
 	void canvasLocked(bool locked);
 
+	// ArtBattle extension:
+	void handicapActivated(const QString &name, const QDateTime &expiration, const QJsonObject &params);
+
 private slots:
 	void onCanvasResize(int xoffset, int yoffset, const QSize &oldsize);
 
@@ -163,6 +169,7 @@ private:
 	void metaMarkerMessage(const protocol::Marker &msg);
 	void metaDefaultLayer(const protocol::DefaultLayer &msg);
 	void metaSoftReset(uint8_t resetterId);
+	void metaHandicap(const QJsonObject &cmd); // ArtBattle extension
 
 	AclFilter *m_aclfilter;
 	UserListModel *m_userlist;

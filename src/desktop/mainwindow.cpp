@@ -130,6 +130,8 @@
 #include "dialogs/abusereport.h"
 #include "dialogs/versioncheckdialog.h"
 
+#include "handicaps/handicapdialog.h"
+
 #include "export/animation.h"
 #include "export/videoexporter.h"
 
@@ -282,6 +284,10 @@ MainWindow::MainWindow(bool restoreWindowPosition)
 	m_sessionSettings = new dialogs::SessionSettingsDialog(m_doc, this);
 	m_serverLogDialog = new dialogs::ServerLogDialog(this);
 	m_serverLogDialog->setModel(m_doc->serverLog());
+
+	// Handicaps (art battle extension)
+	m_handicapDialog = new handicaps::HandicapDialog(m_canvasscene->handicaps(), this);
+	connect(m_handicapDialog, &handicaps::HandicapDialog::message, m_doc->client(), &net::Client::sendMessage);
 
 	// Document <-> Main window connections
 	connect(m_doc, &Document::canvasChanged, this, &MainWindow::onCanvasChanged);
@@ -1572,6 +1578,7 @@ void MainWindow::onServerConnected()
 	getAction("hostsession")->setEnabled(false);
 	getAction("leavesession")->setEnabled(true);
 	getAction("sessionsettings")->setEnabled(true);
+	getAction("sessionhandicaps")->setEnabled(true);
 
 	// Disable UI until login completes
 	m_view->setEnabled(false);
@@ -1586,6 +1593,7 @@ void MainWindow::onServerDisconnected(const QString &message, const QString &err
 	getAction("hostsession")->setEnabled(m_doc->canvas() != nullptr);
 	getAction("leavesession")->setEnabled(false);
 	getAction("sessionsettings")->setEnabled(false);
+	getAction("sessionhandicaps")->setEnabled(false);
 	getAction("reportabuse")->setEnabled(false);
 	m_admintools->setEnabled(false);
 	m_modtools->setEnabled(false);
@@ -2624,7 +2632,7 @@ void MainWindow::setupActions()
 
 	QAction *serverlog = makeAction("viewserverlog", tr("Event Log")).noDefaultShortcut();
 	QAction *sessionSettings = makeAction("sessionsettings", tr("Settings...")).noDefaultShortcut().menuRole(QAction::NoRole).disabled();
-
+	QAction *sessionHandicaps = makeAction("sessionhandicaps", tr("Handicaps...")).shortcut("F6").disabled();
 	QAction *gainop = makeAction("gainop", tr("Become Operator...")).disabled();
 	QAction *resetsession = makeAction("resetsession", tr("&Reset..."));
 	QAction *terminatesession = makeAction("terminatesession", tr("Terminate"));
@@ -2641,6 +2649,7 @@ void MainWindow::setupActions()
 	connect(join, SIGNAL(triggered()), this, SLOT(join()));
 	connect(logout, &QAction::triggered, this, &MainWindow::leave);
 	connect(sessionSettings, &QAction::triggered, m_sessionSettings, &dialogs::SessionSettingsDialog::show);
+	connect(sessionHandicaps, &QAction::triggered, m_handicapDialog, &handicaps::HandicapDialog::show);
 	connect(serverlog, &QAction::triggered, m_serverLogDialog, &dialogs::ServerLogDialog::show);
 	connect(reportabuse, &QAction::triggered, this, &MainWindow::reportAbuse);
 	connect(gainop, &QAction::triggered, this, &MainWindow::tryToGainOp);
@@ -2668,6 +2677,7 @@ void MainWindow::setupActions()
 	sessionmenu->addSeparator();
 	sessionmenu->addAction(serverlog);
 	sessionmenu->addAction(sessionSettings);
+	sessionmenu->addAction(sessionHandicaps);
 	sessionmenu->addAction(locksession);
 
 	//

@@ -40,6 +40,7 @@
 #include <QSettings>
 #include <QDebug>
 #include <QPainter>
+#include <QDateTime>
 
 namespace canvas {
 
@@ -106,6 +107,7 @@ void CanvasModel::disconnectedFromServer()
 	m_userlist->allLogout();
 	m_aclfilter->reset(m_statetracker->localId(), true);
 	m_mode = Mode::Offline;
+	emit handicapActivated(QString(), QDateTime(), QJsonObject());
 }
 
 void CanvasModel::startPlayback()
@@ -182,6 +184,10 @@ void CanvasModel::handleCommand(protocol::MessagePtr cmd)
 			break;
 		case MSG_SOFTRESET:
 			metaSoftReset(cmd->contextId());
+			break;
+		case MSG_EXTENSION:
+			if(isOnline())
+				metaHandicap(cmd.cast<ExtensionCmd>().doc().object());
 			break;
 		default:
 			qWarning("Unhandled meta message %s", qPrintable(cmd->messageName()));
@@ -491,6 +497,25 @@ void CanvasModel::metaSoftReset(uint8_t resetterId)
 
 	if(resetterId == localUserId())
 		m_statetracker->receiveQueuedCommand(protocol::ClientInternal::makeSoftResetPoint());
+}
+
+void CanvasModel::metaHandicap(const QJsonObject &cmd)
+{
+	if(cmd.isEmpty()) {
+		qWarning() << "Received blank extension command!";
+		return;
+	}
+
+	if(cmd["type"] != "handicap") {
+		qWarning() << "Unhandled extension command type" << cmd["type"].toString();
+		return;
+	}
+
+	emit handicapActivated(
+		cmd["name"].toString(),
+		QDateTime::fromSecsSinceEpoch(cmd["expires"].toInt()),
+		cmd["params"].toObject()
+	);
 }
 
 }

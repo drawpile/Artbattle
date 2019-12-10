@@ -81,6 +81,8 @@ set (
 	utils/recentfiles.cpp
 	utils/listserverdelegate.cpp
 	utils/hotbordereventfilter.cpp
+	handicaps/handicaps.cpp
+	handicaps/handicapdialog.cpp
 )
 
 IF ( APPLE )
@@ -156,6 +158,7 @@ set (
 	ui/avatarimport.ui
 	ui/navigator.ui
 	ui/versioncheck.ui
+	ui/handicaps.ui
 )
 
 # Use bundled QtColorWidgets widgets if library not found

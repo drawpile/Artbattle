@@ -19,7 +19,10 @@
 #ifndef DP_CANVASITEM_H
 #define DP_CANVASITEM_H
 
+#include "handicaps/handicaps.h"
+
 #include <QGraphicsObject>
+#include <QBitmap>
 
 namespace paintcore {
 	class LayerStackPixmapCacheObserver;
@@ -39,6 +42,9 @@ public:
 
 	QRectF boundingRect() const override;
 
+public slots:
+	void setBlackoutHandicap(handicaps::BlackoutMode mode);
+
 private slots:
 	void refreshImage(const QRect &area);
 	void canvasResize();
@@ -48,6 +54,9 @@ protected:
 
 private:
 	paintcore::LayerStackPixmapCacheObserver *m_image;
+	QBitmap m_blackoutLayer;
+	int m_blackoutMode = 0;
+
 };
 
 }

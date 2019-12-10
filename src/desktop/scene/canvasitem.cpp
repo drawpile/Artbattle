@@ -60,7 +60,20 @@ void CanvasItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 	 QWidget *)
 {
 	const QRect exposed = option->exposedRect.adjusted(-1, -1, 1, 1).toAlignedRect();
+
+	if(m_blackoutMode == int(handicaps::BlackoutMode::Simple)) {
+		painter->fillRect(exposed, Qt::black);
+		return;
+	}
+
 	painter->drawPixmap(exposed, m_image->getPixmap(exposed), exposed);
+}
+
+void CanvasItem::setBlackoutHandicap(handicaps::BlackoutMode mode)
+{
+	m_blackoutMode = int(mode);
+	m_blackoutLayer = QBitmap();
+	update();
 }
 
 }

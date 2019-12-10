@@ -82,6 +82,10 @@ namespace tools {
 	class ToolController;
 }
 
+namespace handicaps {
+	class HandicapDialog;
+}
+
 class ShortcutDetector;
 
 //! The application main window
@@ -235,6 +239,8 @@ private:
 	dialogs::ServerLogDialog *m_serverLogDialog;
 
 	drawingboard::CanvasScene *m_canvasscene;
+
+	handicaps::HandicapDialog *m_handicapDialog;
 
 	QMenu *m_recentMenu;
 
