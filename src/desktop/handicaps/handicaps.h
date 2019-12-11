@@ -43,17 +43,12 @@ public:
 
 public slots:
 	void activate(const QString &name, const QDateTime &expiration, const QJsonObject &params);
-	void deactivate();
 
 signals:
-	void blackout(BlackoutMode mode);
-	void activated(const QString &title, int seconds);
+	void blackout(BlackoutMode mode, int radius, int duration);
 
 private:
-	void activateBlackout(const QJsonObject &params);
-
-	QTimer *m_expirationTimer;
-	QString m_current;
+	QTimer *m_blackoutTimer;
 };
 
 }

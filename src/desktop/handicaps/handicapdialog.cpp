@@ -18,7 +18,6 @@
 */
 
 #include "handicapdialog.h"
-#include "handicaps.h"
 #include "../../libshared/net/meta2.h"
 
 #include "ui_handicaps.h"
@@ -29,17 +28,6 @@
 
 namespace handicaps {
 
-struct HandicapChoice {
-	QString mode;
-	bool hasStrength;
-};
-
-}
-
-Q_DECLARE_METATYPE(handicaps::HandicapChoice)
-
-namespace handicaps {
-
 HandicapDialog::HandicapDialog(HandicapState *state, QWidget *parent)
 	: QDialog(parent),
 	  m_ui(new Ui_HandicapDialog),
@@ -47,31 +35,16 @@ HandicapDialog::HandicapDialog(HandicapState *state, QWidget *parent)
 {
 	m_ui->setupUi(this);
 
-	m_ui->handicapChoice->addItem("Blackout - simple", QVariant::fromValue<HandicapChoice>({
-		QString(),
-		false
-   }));
-	m_ui->handicapChoice->addItem("Blackout - scrub", QVariant::fromValue<HandicapChoice>({
-		"bitmap",
-		false
-   }));
-	m_ui->handicapChoice->addItem("Blackout - spotlight", QVariant::fromValue<HandicapChoice>({
-		"spotlight",
-		false
-   }));
-
 	m_countdown = new QTimer(this);
 	m_countdown->setSingleShot(false);
 	m_countdown->setInterval(1000);
-
-	connect(m_ui->startButton, &QPushButton::clicked, this, &HandicapDialog::startHandicap);
-	connect(m_ui->stopButton, &QPushButton::clicked, this, &HandicapDialog::stopHandicap);
-	connect(state, &HandicapState::activated, this, &HandicapDialog::handicapActivated);
+	m_countdown->start();
 	connect(m_countdown, &QTimer::timeout, this, &HandicapDialog::countdown);
-	connect(m_ui->handicapChoice, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this]() {
-		const auto c = m_ui->handicapChoice->currentData().value<HandicapChoice>();
-		m_ui->handicapStrength->setEnabled(c.hasStrength);
-	});
+
+	connect(m_ui->blackoutStart, &QPushButton::clicked, this, &HandicapDialog::startBlackout);
+	connect(m_ui->blackoutStop, &QPushButton::clicked, this, [this]() { startHandicap("blackout", -1, QJsonObject()); });
+
+	connect(state, &HandicapState::blackout, this, &HandicapDialog::blackoutActivated);
 }
 
 HandicapDialog::~HandicapDialog()
@@ -79,46 +52,69 @@ HandicapDialog::~HandicapDialog()
 	delete m_ui;
 }
 
-void HandicapDialog::startHandicap()
+void HandicapDialog::startBlackout()
+{
+	QJsonObject params;
+	if(m_ui->blackoutScrub->isChecked())
+		params["mode"] = "bitmap";
+	else if(m_ui->blackoutSpotlight->isChecked()) {
+		params["mode"] = "spotlight";
+		params["r"] = m_ui->spotlightSize->value();
+	} else
+		params["mode"] = "full";
+
+	startHandicap("blackout", m_ui->blackoutTime->value(), params);
+}
+
+void HandicapDialog::blackoutActivated(BlackoutMode mode, int radius, int duration)
+{
+	Q_UNUSED(radius)
+
+	const bool off = mode == BlackoutMode::Off;
+	if(off) {
+		m_ui->blackoutTime->setValue(m_ui->blackoutTime->property("originalValue").toInt());
+	} else {
+		m_ui->blackoutTime->setProperty("originalValue", m_ui->blackoutTime->value());
+		m_ui->blackoutTime->setValue(duration);
+	}
+
+	m_ui->blackoutTime->setEnabled(off);
+	m_ui->blackoutStart->setEnabled(off);
+	m_ui->blackoutFull->setEnabled(off);
+	m_ui->blackoutScrub->setEnabled(off);
+	m_ui->blackoutSpotlight->setEnabled(off);
+	m_ui->blackoutStart->setEnabled(off);
+	m_ui->spotlightSize->setEnabled(off);
+	m_ui->spotlightSizeBox->setEnabled(off);
+}
+
+void HandicapDialog::startHandicap(const QString &name, int duration, const QJsonObject &params)
 {
 	QJsonObject cmd;
 	cmd["type"] = "handicap";
-	cmd["name"] = "blackout";
-	cmd["expires"] = QDateTime::currentDateTime().addSecs(m_ui->handicapExpiration->value()).toSecsSinceEpoch();
-
-	const auto choice = m_ui->handicapChoice->currentData().value<HandicapChoice>();
-	QJsonObject params;
-	if(!choice.mode.isEmpty())
-		params["mode"] = choice.mode;
+	cmd["name"] = name;
+	if(duration>=0)
+		cmd["expires"] = QDateTime::currentDateTime().toSecsSinceEpoch() + qMax(1, duration);
 
 	if(!params.isEmpty())
 		cmd["params"] = params;
-
 	emit message(protocol::MessagePtr(new protocol::ExtensionCmd(0, QJsonDocument(cmd))));
-}
-
-void HandicapDialog::stopHandicap()
-{
-	QJsonObject cmd;
-	cmd["type"] = "handicap";
-	emit message(protocol::MessagePtr(new protocol::ExtensionCmd(0, QJsonDocument(cmd))));
-}
-
-void HandicapDialog::handicapActivated(const QString &title, int seconds)
-{
-	m_ui->currentName->setText(title.isEmpty() ? QStringLiteral("None") : title);
-	m_ui->currentExpiration->setMaximum(qMax(1, seconds));
-	m_ui->currentExpiration->setValue(seconds);
-	if(!title.isEmpty())
-		m_countdown->start();
 }
 
 void HandicapDialog::countdown()
 {
-	const int v = m_ui->currentExpiration->value() - 1;
-	if(v<=0)
-		m_countdown->stop();
-	m_ui->currentExpiration->setValue(v);
+	QSpinBox * const countdowns[] = {
+		m_ui->blackoutTime
+	};
+
+	for(unsigned int i=0;i<sizeof(countdowns)/sizeof(QWidget*);++i) {
+		QSpinBox *box = countdowns[i];
+		if(box->isEnabled())
+			continue;
+		const int v = box->value() - 1;
+		if(v >= 0)
+			box->setValue(v);
+	}
 }
 
 }

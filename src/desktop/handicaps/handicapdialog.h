@@ -23,12 +23,13 @@
 #include <QDialog>
 
 #include "../../libshared/net/message.h"
+#include "handicaps.h"
+
+class QSpinBox;
 
 class Ui_HandicapDialog;
 
 namespace handicaps {
-
-class HandicapState;
 
 class HandicapDialog : public QDialog
 {
@@ -41,14 +42,15 @@ signals:
 	void message(const protocol::MessagePtr &msg);
 
 public slots:
-	void handicapActivated(const QString &name, int seconds);
+	void blackoutActivated(BlackoutMode mode, int radius, int duration);
 
 private slots:
-	void startHandicap();
-	void stopHandicap();
+	void startBlackout();
 	void countdown();
 
 private:
+	void startHandicap(const QString &name, int duration, const QJsonObject &params);
+
 	Ui_HandicapDialog *m_ui;
 	HandicapState *m_state;
 	QTimer *m_countdown;

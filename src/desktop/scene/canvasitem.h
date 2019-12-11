@@ -43,7 +43,8 @@ public:
 	QRectF boundingRect() const override;
 
 public slots:
-	void setBlackoutHandicap(handicaps::BlackoutMode mode);
+	void setBlackoutHandicap(handicaps::BlackoutMode mode, int radius);
+	void pointerMove(const QPointF &pos);
 
 private slots:
 	void refreshImage(const QRect &area);
@@ -53,10 +54,14 @@ protected:
 	void paint(QPainter*, const QStyleOptionGraphicsItem*, QWidget*) override;
 
 private:
+
 	paintcore::LayerStackPixmapCacheObserver *m_image;
+
+	// handicap state (ArtBattle extension)
 	QBitmap m_blackoutLayer;
 	int m_blackoutMode = 0;
-
+	int m_spotlightSize = 0;
+	QPointF m_spotlightPos;
 };
 
 }

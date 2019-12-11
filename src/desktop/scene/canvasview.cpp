@@ -20,6 +20,7 @@
 #include "canvasview.h"
 #include "canvasscene.h"
 #include "canvas/canvasmodel.h"
+#include "scene/canvasitem.h"
 
 #include "core/layerstack.h"
 #include "core/point.h"
@@ -92,6 +93,8 @@ void CanvasView::setCanvas(drawingboard::CanvasScene *scene)
 {
 	m_scene = scene;
 	setScene(scene);
+
+	connect(this, &CanvasView::penMove, m_scene->canvasItem(), &drawingboard::CanvasItem::pointerMove);
 
 	connect(m_scene, &drawingboard::CanvasScene::canvasResized, this, [this](int xoff, int yoff, const QSize &oldsize) {
 		if(oldsize.isEmpty()) {

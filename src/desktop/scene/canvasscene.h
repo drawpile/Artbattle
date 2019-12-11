@@ -85,6 +85,7 @@ public:
 	paintcore::LayerStackPixmapCacheObserver *layerStackObserver() { return m_layerstackObserver; }
 
 	handicaps::HandicapState *handicaps() { return m_handicaps; }
+	CanvasItem *canvasItem() { return m_canvasItem; }
 
 public slots:
 	//! Show annotation borders

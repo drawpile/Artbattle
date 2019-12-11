@@ -24,6 +24,9 @@
 
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
+#include <QGraphicsSceneMouseEvent>
+
+#include <QDebug>
 
 namespace drawingboard {
 
@@ -37,6 +40,8 @@ CanvasItem::CanvasItem(paintcore::LayerStackPixmapCacheObserver *layerstack, QGr
 	connect(m_image, &paintcore::LayerStackPixmapCacheObserver::areaChanged, this, &CanvasItem::refreshImage);
 	connect(m_image, &paintcore::LayerStackPixmapCacheObserver::resized, this, &CanvasItem::canvasResize);
 	setFlag(ItemUsesExtendedStyleOption);
+
+	setAcceptHoverEvents(true);
 }
 
 void CanvasItem::refreshImage(const QRect &area)
@@ -66,14 +71,46 @@ void CanvasItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 		return;
 	}
 
+	if(m_blackoutMode == int(handicaps::BlackoutMode::Spotlight)) {
+		painter->fillRect(exposed, Qt::black);
+
+		const QRectF spotlight {
+			m_spotlightPos - QPointF(m_spotlightSize, m_spotlightSize),
+			QSizeF(m_spotlightSize*2, m_spotlightSize*2)
+		};
+
+		if(exposed.intersects(spotlight.toRect())) {
+			QPainterPath mask;
+			mask.addEllipse(spotlight);
+			painter->setClipPath(mask);
+
+			painter->drawPixmap(exposed, m_image->getPixmap(exposed), exposed);
+		}
+
+		return;
+	}
+
 	painter->drawPixmap(exposed, m_image->getPixmap(exposed), exposed);
 }
 
-void CanvasItem::setBlackoutHandicap(handicaps::BlackoutMode mode)
+void CanvasItem::setBlackoutHandicap(handicaps::BlackoutMode mode, int radius)
 {
 	m_blackoutMode = int(mode);
 	m_blackoutLayer = QBitmap();
+	m_spotlightSize = qBound(1, radius, 120);
 	update();
+}
+
+void CanvasItem::pointerMove(const QPointF &pos)
+{
+	if(m_blackoutMode == int(handicaps::BlackoutMode::Bitmap)) {
+
+	} else if(m_blackoutMode == int(handicaps::BlackoutMode::Spotlight)) {
+		QRectF s(-m_spotlightSize, -m_spotlightSize, m_spotlightSize*2, m_spotlightSize*2);
+		update(s.translated(m_spotlightPos));
+		m_spotlightPos = pos;
+		update(s.translated(pos));
+	}
 }
 
 }
