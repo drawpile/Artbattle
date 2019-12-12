@@ -22,7 +22,6 @@
 
 #include <QObject>
 
-class QDateTime;
 class QJsonObject;
 class QTimer;
 
@@ -42,7 +41,7 @@ public:
 	HandicapState(QObject *parent);
 
 public slots:
-	void activate(const QString &name, const QDateTime &expiration, const QJsonObject &params);
+	void activate(const QString &name, int expiration, const QJsonObject &params);
 
 signals:
 	void blackout(BlackoutMode mode, int radius, int duration);

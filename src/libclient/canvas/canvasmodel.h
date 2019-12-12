@@ -33,7 +33,6 @@
 #include <QPointer>
 
 class QJsonObject;
-class QDateTime;
 
 namespace protocol {
 	class UserJoin;
@@ -155,7 +154,7 @@ signals:
 	void canvasLocked(bool locked);
 
 	// ArtBattle extension:
-	void handicapActivated(const QString &name, const QDateTime &expiration, const QJsonObject &params);
+	void handicapActivated(const QString &name, int duration, const QJsonObject &params);
 
 private slots:
 	void onCanvasResize(int xoffset, int yoffset, const QSize &oldsize);

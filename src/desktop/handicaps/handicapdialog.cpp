@@ -23,7 +23,6 @@
 #include "ui_handicaps.h"
 
 #include <QJsonObject>
-#include <QDateTime>
 #include <QTimer>
 
 namespace handicaps {
@@ -94,7 +93,7 @@ void HandicapDialog::startHandicap(const QString &name, int duration, const QJso
 	cmd["type"] = "handicap";
 	cmd["name"] = name;
 	if(duration>=0)
-		cmd["expires"] = QDateTime::currentDateTime().toSecsSinceEpoch() + qMax(1, duration);
+		cmd["expires"] = duration;
 
 	if(!params.isEmpty())
 		cmd["params"] = params;

@@ -100,7 +100,7 @@ void CanvasScene::initCanvas(canvas::CanvasModel *model)
 		delete i;
 	m_usermarkers.clear();
 
-		connect(model, &canvas::CanvasModel::handicapActivated, m_handicaps, &handicaps::HandicapState::activate);
+	connect(model, &canvas::CanvasModel::handicapActivated, m_handicaps, &handicaps::HandicapState::activate);
 	
 	QList<QRectF> regions;
 	regions.append(sceneRect());

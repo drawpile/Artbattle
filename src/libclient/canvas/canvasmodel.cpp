@@ -40,7 +40,6 @@
 #include <QSettings>
 #include <QDebug>
 #include <QPainter>
-#include <QDateTime>
 
 namespace canvas {
 
@@ -107,7 +106,7 @@ void CanvasModel::disconnectedFromServer()
 	m_userlist->allLogout();
 	m_aclfilter->reset(m_statetracker->localId(), true);
 	m_mode = Mode::Offline;
-	emit handicapActivated(QString(), QDateTime(), QJsonObject());
+	emit handicapActivated(QString(), 0, QJsonObject());
 }
 
 void CanvasModel::startPlayback()
@@ -513,7 +512,7 @@ void CanvasModel::metaHandicap(const QJsonObject &cmd)
 
 	emit handicapActivated(
 		cmd["name"].toString(),
-		QDateTime::fromSecsSinceEpoch(cmd["expires"].toInt()),
+		cmd["expires"].toInt(),
 		cmd["params"].toObject()
 	);
 }

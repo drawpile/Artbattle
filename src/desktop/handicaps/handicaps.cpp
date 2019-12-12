@@ -20,7 +20,6 @@
 #include "handicaps.h"
 
 #include <QTimer>
-#include <QDateTime>
 #include <QJsonObject>
 #include <QJsonArray>
 #include <QDebug>
@@ -35,18 +34,15 @@ HandicapState::HandicapState(QObject *parent)
 	connect(m_blackoutTimer, &QTimer::timeout, this, [this]() { emit blackout(BlackoutMode::Off, 0, 0); });
 }
 
-void HandicapState::activate(const QString &name, const QDateTime &expiration, const QJsonObject &params)
+void HandicapState::activate(const QString &name, int expiration, const QJsonObject &params)
 {
-	if(name == "stop") {
+	if(name.isEmpty()) {
 		qInfo() << "Clearing all handicaps";
 		emit blackout(BlackoutMode::Off, 0, 0);
 		return;
 	}
 
-	const int expiresInMsecs = int(qBound(-1ll, QDateTime::currentDateTime().msecsTo(expiration), 3600 * 1000ll));
-	const int durationSecs = expiresInMsecs / 1000;
-
-	qInfo() << "Handicap:" << name << "expires in" << durationSecs << "seconds";
+	qInfo() << "Handicap:" << name << "expires in" << expiration << "seconds";
 
 	if(name == "blackout") {
 		BlackoutMode mode = BlackoutMode::Simple;
@@ -61,12 +57,12 @@ void HandicapState::activate(const QString &name, const QDateTime &expiration, c
 		else
 			mode = BlackoutMode::Off;
 
-		if(expiresInMsecs > 0)
-			m_blackoutTimer->start(expiresInMsecs);
+		if(expiration > 0)
+			m_blackoutTimer->start(expiration * 1000);
 		else
 			mode = BlackoutMode::Off;
 
-		emit blackout(mode, params["r"].toInt(), durationSecs);
+		emit blackout(mode, params["r"].toInt(), expiration);
 
 	} else {
 		qWarning() << "Unhandled handicap type:" << name;
