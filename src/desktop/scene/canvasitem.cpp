@@ -52,6 +52,7 @@ void CanvasItem::refreshImage(const QRect &area)
 void CanvasItem::canvasResize()
 {
 	prepareGeometryChange();
+	m_blackoutLayer = QBitmap();
 }
 
 QRectF CanvasItem::boundingRect() const
@@ -91,26 +92,50 @@ void CanvasItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 	}
 
 	painter->drawPixmap(exposed, m_image->getPixmap(exposed), exposed);
+
+	if(m_blackoutMode == int(handicaps::BlackoutMode::Bitmap) && !m_blackoutLayer.isNull()) {
+		painter->drawPixmap(exposed, m_blackoutLayer, exposed);
+	}
 }
 
 void CanvasItem::setBlackoutHandicap(handicaps::BlackoutMode mode, int radius)
 {
 	m_blackoutMode = int(mode);
-	m_blackoutLayer = QBitmap();
 	m_spotlightSize = qBound(1, radius, 120);
+
+	if(m_blackoutMode == int(handicaps::BlackoutMode::Bitmap)) {
+		m_blackoutLayer = QBitmap(m_image->getPixmap().size());
+		m_blackoutLayer.fill(Qt::black);
+	} else {
+		m_blackoutLayer = QBitmap();
+	}
+
 	update();
 }
 
 void CanvasItem::pointerMove(const QPointF &pos)
 {
 	if(m_blackoutMode == int(handicaps::BlackoutMode::Bitmap)) {
+		if(m_blackoutLayer.isNull()) {
+			m_blackoutLayer = QBitmap(m_image->getPixmap().size());
+			m_blackoutLayer.fill(Qt::black);
+		}
+
+		QPainter p(&m_blackoutLayer);
+
+		const QRectF s(-m_spotlightSize + pos.x(), -m_spotlightSize + pos.y(), m_spotlightSize*2, m_spotlightSize*2);
+		p.setBrush(Qt::white);
+		p.setPen(Qt::NoPen);
+		p.drawEllipse(s);
+		update(s);
 
 	} else if(m_blackoutMode == int(handicaps::BlackoutMode::Spotlight)) {
-		QRectF s(-m_spotlightSize, -m_spotlightSize, m_spotlightSize*2, m_spotlightSize*2);
+		const QRectF s(-m_spotlightSize, -m_spotlightSize, m_spotlightSize*2, m_spotlightSize*2);
 		update(s.translated(m_spotlightPos));
-		m_spotlightPos = pos;
 		update(s.translated(pos));
 	}
+
+	m_spotlightPos = pos;
 }
 
 }

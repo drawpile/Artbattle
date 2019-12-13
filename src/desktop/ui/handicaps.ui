@@ -19,9 +19,9 @@
      <property name="title">
       <string>Blackout</string>
      </property>
-     <layout class="QHBoxLayout" name="horizontalLayout_2">
+     <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout_4">
         <item>
          <widget class="QRadioButton" name="blackoutFull">
           <property name="text">
@@ -40,61 +40,45 @@
          </widget>
         </item>
         <item>
-         <layout class="QHBoxLayout" name="horizontalLayout">
-          <item>
-           <widget class="QRadioButton" name="blackoutSpotlight">
-            <property name="text">
-             <string>Spotlight:</string>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <widget class="QSpinBox" name="spotlightSizeBox">
-            <property name="suffix">
-             <string>px</string>
-            </property>
-            <property name="prefix">
-             <string>r=</string>
-            </property>
-            <property name="minimum">
-             <number>4</number>
-            </property>
-            <property name="maximum">
-             <number>60</number>
-            </property>
-            <property name="value">
-             <number>30</number>
-            </property>
-           </widget>
-          </item>
-          <item>
-           <spacer name="horizontalSpacer">
-            <property name="orientation">
-             <enum>Qt::Horizontal</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>40</width>
-              <height>20</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-         </layout>
+         <widget class="QRadioButton" name="blackoutSpotlight">
+          <property name="text">
+           <string>Spotlight</string>
+          </property>
+         </widget>
         </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
         <item>
-         <widget class="QSlider" name="spotlightSize">
+         <widget class="QDial" name="spotlightSize">
           <property name="minimum">
            <number>4</number>
           </property>
           <property name="maximum">
-           <number>60</number>
+           <number>120</number>
           </property>
           <property name="value">
            <number>30</number>
           </property>
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+         </widget>
+        </item>
+        <item>
+         <widget class="QSpinBox" name="spotlightSizeBox">
+          <property name="suffix">
+           <string>px</string>
+          </property>
+          <property name="prefix">
+           <string>r=</string>
+          </property>
+          <property name="minimum">
+           <number>4</number>
+          </property>
+          <property name="maximum">
+           <number>120</number>
+          </property>
+          <property name="value">
+           <number>30</number>
           </property>
          </widget>
         </item>
@@ -158,12 +142,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>526</x>
-     <y>136</y>
+     <x>215</x>
+     <y>73</y>
     </hint>
     <hint type="destinationlabel">
-     <x>556</x>
-     <y>144</y>
+     <x>205</x>
+     <y>133</y>
     </hint>
    </hints>
   </connection>
@@ -174,12 +158,12 @@
    <slot>setValue(int)</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>560</x>
-     <y>126</y>
+     <x>191</x>
+     <y>135</y>
     </hint>
     <hint type="destinationlabel">
-     <x>462</x>
-     <y>135</y>
+     <x>185</x>
+     <y>95</y>
     </hint>
    </hints>
   </connection>

@@ -56,12 +56,12 @@ void HandicapDialog::startBlackout()
 	QJsonObject params;
 	if(m_ui->blackoutScrub->isChecked())
 		params["mode"] = "bitmap";
-	else if(m_ui->blackoutSpotlight->isChecked()) {
+	else if(m_ui->blackoutSpotlight->isChecked())
 		params["mode"] = "spotlight";
-		params["r"] = m_ui->spotlightSize->value();
-	} else
+	else
 		params["mode"] = "full";
 
+	params["r"] = m_ui->spotlightSize->value();
 	startHandicap("blackout", m_ui->blackoutTime->value(), params);
 }
 
