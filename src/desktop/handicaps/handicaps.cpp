@@ -32,6 +32,10 @@ HandicapState::HandicapState(QObject *parent)
 	m_blackoutTimer = new QTimer(this);
 	m_blackoutTimer->setSingleShot(true);
 	connect(m_blackoutTimer, &QTimer::timeout, this, [this]() { emit blackout(BlackoutMode::Off, 0, 0); });
+
+	m_canvasInvertTimer = new QTimer(this);
+	m_canvasInvertTimer->setSingleShot(true);
+	connect(m_canvasInvertTimer, &QTimer::timeout, this, [this]() { emit canvasInvert(false, false, 0); });
 }
 
 void HandicapState::activate(const QString &name, int expiration, const QJsonObject &params)
@@ -39,6 +43,7 @@ void HandicapState::activate(const QString &name, int expiration, const QJsonObj
 	if(name.isEmpty()) {
 		qInfo() << "Clearing all handicaps";
 		emit blackout(BlackoutMode::Off, 0, 0);
+		emit canvasInvert(false, false, 0);
 		return;
 	}
 
@@ -63,6 +68,16 @@ void HandicapState::activate(const QString &name, int expiration, const QJsonObj
 			mode = BlackoutMode::Off;
 
 		emit blackout(mode, params["r"].toInt(), expiration);
+
+	} else if(name == "canvasInvert") {
+		emit canvasInvert(
+			params["flip"].toBool(),
+			params["mirror"].toBool(),
+			expiration
+		);
+
+		if(expiration > 0)
+			m_canvasInvertTimer->start(expiration * 1000);
 
 	} else {
 		qWarning() << "Unhandled handicap type:" << name;

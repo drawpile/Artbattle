@@ -26,6 +26,8 @@
 #include "core/point.h"
 #include "notifications.h"
 
+#include "handicaps/handicaps.h"
+
 #include <QMouseEvent>
 #include <QTabletEvent>
 #include <QScrollBar>
@@ -43,7 +45,7 @@ namespace widgets {
 CanvasView::CanvasView(QWidget *parent)
 	: QGraphicsView(parent), m_pendown(NOTDOWN), m_penmode(PenMode::Normal), m_dragmode(ViewDragMode::None),
 	m_outlineSize(2), m_showoutline(true), m_subpixeloutline(true), m_squareoutline(false),
-	m_zoom(100), m_rotate(0), m_flip(false), m_mirror(false),
+	m_zoom(100), m_rotate(0), m_flip(false), m_handicapFlip(false), m_mirror(false), m_handicapMirror(false),
 	m_scene(nullptr),
 	m_zoomWheelDelta(0),
 	m_enableTablet(true),
@@ -106,6 +108,12 @@ void CanvasView::setCanvas(drawingboard::CanvasScene *scene)
 		viewRectChanged();
 	});
 	viewRectChanged();
+
+	connect(m_scene->handicaps(), &handicaps::HandicapState::canvasInvert, this, [this](bool flip, bool mirror) {
+		m_handicapFlip = flip;
+		m_handicapMirror = mirror;
+		setZoom(m_zoom);
+	});
 }
 
 void CanvasView::scrollBy(int x, int y)
@@ -200,7 +208,7 @@ void CanvasView::setZoom(qreal zoom)
 	nm.scale(m_zoom/100.0, m_zoom/100.0);
 	nm.rotate(m_rotate);
 
-	nm.scale(m_mirror ? -1 : 1, m_flip ? -1 : 1);
+	nm.scale((m_mirror^m_handicapMirror) ? -1 : 1, (m_flip^m_handicapFlip) ? -1 : 1);
 
 	setMatrix(nm);
 

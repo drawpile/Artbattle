@@ -251,8 +251,8 @@ private:
 
 	qreal m_zoom; // View zoom in percents
 	qreal m_rotate; // View rotation in degrees
-	bool m_flip; // Flip Y axis
-	bool m_mirror; // Flip X axis
+	bool m_flip, m_handicapFlip; // Flip Y axis
+	bool m_mirror, m_handicapMirror; // Flip X axis
 
 	drawingboard::CanvasScene *m_scene;
 
