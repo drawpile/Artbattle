@@ -44,18 +44,22 @@ HandicapDialog::HandicapDialog(HandicapState *state, QWidget *parent)
 	connect(m_ui->blackoutStop, &QPushButton::clicked, this, [this]() { startHandicap("blackout", -1, QJsonObject()); });
 
 	connect(m_ui->canvasInvertStart, &QPushButton::clicked, this, &HandicapDialog::startCanvasInvert);
-	connect(m_ui->canvasInvertStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });connect(m_ui->blackoutStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });
+	connect(m_ui->canvasInvertStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });
 
 	connect(m_ui->hideCursorStart, &QPushButton::clicked, this, &HandicapDialog::startHideCursor);
-	connect(m_ui->hideCursorStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });connect(m_ui->blackoutStop, &QPushButton::clicked, this, [this]() { startHandicap("hideCursor", -1, QJsonObject()); });
+	connect(m_ui->hideCursorStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });
 
 	connect(m_ui->cursorInvertStart, &QPushButton::clicked, this, &HandicapDialog::startCursorInvert);
-	connect(m_ui->cursorInvertStop, &QPushButton::clicked, this, [this]() { startHandicap("cursorInvert", -1, QJsonObject()); });connect(m_ui->blackoutStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });
+	connect(m_ui->cursorInvertStop, &QPushButton::clicked, this, [this]() { startHandicap("cursorInvert", -1, QJsonObject()); });
+
+	connect(m_ui->quakeStart, &QPushButton::clicked, this, &HandicapDialog::startEarthquake);
+	connect(m_ui->quakeStop, &QPushButton::clicked, this, [this]() { startHandicap("earthquake", -1, QJsonObject()); });
 
 	connect(state, &HandicapState::blackout, this, &HandicapDialog::blackoutActivated);
 	connect(state, &HandicapState::canvasInvert, this, &HandicapDialog::canvasInvertActivated);
 	connect(state, &HandicapState::hideCursor, this, &HandicapDialog::cursorHidden);
 	connect(state, &HandicapState::cursorInvert, this, &HandicapDialog::cursorInvertActivated);
+	connect(state, &HandicapState::earthquake, this, &HandicapDialog::earthquakeActivated);
 
 	connect(m_ui->stopAllButton, &QPushButton::clicked, this, [this]() { startHandicap(QString(), 0, QJsonObject()); });
 }
@@ -84,13 +88,7 @@ void HandicapDialog::blackoutActivated(BlackoutMode mode, int radius, int durati
 	Q_UNUSED(radius)
 
 	const bool off = mode == BlackoutMode::Off;
-	if(off) {
-		m_ui->blackoutTime->setValue(m_ui->blackoutTime->property("originalValue").toInt());
-	} else {
-		m_ui->blackoutTime->setProperty("originalValue", m_ui->blackoutTime->value());
-		m_ui->blackoutTime->setValue(duration);
-	}
-
+	m_ui->blackoutBox->setProperty("countdown", duration);
 	m_ui->blackoutTime->setEnabled(off);
 	m_ui->blackoutStart->setEnabled(off);
 	m_ui->blackoutFull->setEnabled(off);
@@ -116,13 +114,7 @@ void HandicapDialog::canvasInvertActivated(bool flip, bool mirror, int duration)
 {
 	const bool off = !flip & !mirror;
 
-	if(off) {
-		m_ui->canvasInvertTime->setValue(m_ui->canvasInvertTime->property("originalValue").toInt());
-	} else {
-		m_ui->canvasInvertTime->setProperty("originalValue", m_ui->canvasInvertTime->value());
-		m_ui->canvasInvertTime->setValue(duration);
-	}
-
+	m_ui->invertCanvasBox->setProperty("countdown", duration);
 	m_ui->canvasFlip->setEnabled(off);
 	m_ui->canvasMirror->setEnabled(off);
 	m_ui->canvasInvertBoth->setEnabled(off);
@@ -138,12 +130,7 @@ void HandicapDialog::startHideCursor()
 void HandicapDialog::cursorHidden(int duration)
 {
 	const bool off = duration <= 0;
-	if(off) {
-		m_ui->hideCursorTime->setValue(m_ui->hideCursorTime->property("originalValue").toInt());
-	} else {
-		m_ui->hideCursorTime->setProperty("originalValue", m_ui->hideCursorTime->value());
-	}
-
+	m_ui->hideCursorBox->setProperty("countdown", duration);
 	m_ui->hideCursorTime->setEnabled(off);
 	m_ui->hideCursorStart->setEnabled(off);
 }
@@ -163,19 +150,35 @@ void HandicapDialog::cursorInvertActivated(bool flip, bool mirror, int duration)
 {
 	const bool off = !flip & !mirror;
 
-	if(off) {
-		m_ui->cursorInvertTime->setValue(m_ui->cursorInvertTime->property("originalValue").toInt());
-	} else {
-		m_ui->cursorInvertTime->setProperty("originalValue", m_ui->cursorInvertTime->value());
-		m_ui->cursorInvertTime->setValue(duration);
-	}
-
+	m_ui->invertCursorBox->setProperty("countdown", duration);
 	m_ui->cursorFlip->setEnabled(off);
 	m_ui->cursorMirror->setEnabled(off);
 	m_ui->cursorFlipMirror->setEnabled(off);
 	m_ui->cursorInvertStart->setEnabled(off);
 	m_ui->cursorInvertTime->setEnabled(off);
 }
+
+void HandicapDialog::startEarthquake()
+{
+	QJsonObject params;
+	params["h"] = m_ui->quakeHorizontal->value();
+	params["v"] = m_ui->quakeVertical->value();
+	startHandicap("earthquake", m_ui->quakeTime->value(), params);
+}
+
+void HandicapDialog::earthquakeActivated(int h, int v, int duration)
+{
+	const bool off = h==0 && v==0;
+
+	m_ui->earthquakeBox->setProperty("countdown", duration);
+	m_ui->quakeTime->setEnabled(off);
+	m_ui->quakeStart->setEnabled(off);
+	m_ui->quakeVertical->setEnabled(off);
+	m_ui->quakeHorizontal->setEnabled(off);
+	m_ui->quakeVBox->setEnabled(off);
+	m_ui->quakeHBox->setEnabled(off);
+}
+
 
 void HandicapDialog::startHandicap(const QString &name, int duration, const QJsonObject &params)
 {
@@ -192,20 +195,34 @@ void HandicapDialog::startHandicap(const QString &name, int duration, const QJso
 
 void HandicapDialog::countdown()
 {
-	QSpinBox * const countdowns[] = {
-		m_ui->blackoutTime,
-		m_ui->canvasInvertTime,
-		m_ui->hideCursorTime,
-		m_ui->cursorInvertTime
+	QGroupBox * const countdowns[] = {
+		m_ui->blackoutBox,
+		m_ui->invertCanvasBox,
+		m_ui->hideCursorBox,
+		m_ui->invertCursorBox,
+		m_ui->earthquakeBox
 	};
+	for(unsigned int i=0;i<sizeof(countdowns)/sizeof(*countdowns);++i) {
+		QGroupBox *w = countdowns[i];
+		QVariant v = w->property("countdown");
+		if(!v.isNull()) {
 
-	for(unsigned int i=0;i<sizeof(countdowns)/sizeof(QWidget*);++i) {
-		QSpinBox *box = countdowns[i];
-		if(box->isEnabled())
-			continue;
-		const int v = box->value() - 1;
-		if(v >= 0)
-			box->setValue(v);
+			QString originalTitle = w->property("originalTitle").toString();
+			if(originalTitle.isEmpty()) {
+				originalTitle = w->title();
+				w->setProperty("originalTitle", originalTitle);
+			}
+
+			const int value = v.toInt() - 1;
+
+			if(value <= 0) {
+				w->setProperty("countdown", QVariant());
+				w->setTitle(originalTitle);
+			} else {
+				w->setProperty("countdown", value);
+				w->setTitle(QStringLiteral("%1 - %2 s").arg(originalTitle).arg(value));
+			}
+		}
 	}
 }
 

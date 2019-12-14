@@ -39,6 +39,8 @@
 #include <QWindow>
 #include <QScreen>
 #include <QtMath>
+#include <QTimer>
+#include <QRandomGenerator>
 
 namespace widgets {
 
@@ -49,6 +51,7 @@ CanvasView::CanvasView(QWidget *parent)
 	m_handicapHideCursor(false),
 	m_handicapCursorFlip(false), m_handicapCursorMirror(false),
 	m_scene(nullptr),
+	m_handicapQuakeHorizontal(0), m_handicapQuakeVertical(0),
 	m_zoomWheelDelta(0),
 	m_enableTablet(true),
 	m_locked(false), m_pointertracking(false), m_pixelgrid(true),
@@ -83,6 +86,11 @@ CanvasView::CanvasView(QWidget *parent)
 		p.drawPoint(0, 0);
 		m_dotcursor = QCursor(dot, 0, 0);
 	}
+
+	m_handicapQuakeTimer = new QTimer(this);
+	m_handicapQuakeTimer->setSingleShot(false);
+	m_handicapQuakeTimer->setInterval(300);
+	connect(m_handicapQuakeTimer, &QTimer::timeout, this, &CanvasView::handicapQuake);
 
 	updateShortcuts();
 }
@@ -126,6 +134,16 @@ void CanvasView::setCanvas(drawingboard::CanvasScene *scene)
 		m_handicapCursorFlip = flip;
 		m_handicapCursorMirror = mirror;
 	});
+
+	connect(m_scene->handicaps(), &handicaps::HandicapState::earthquake, this, [this](int horizontal, int vertical) {
+		m_handicapQuakeHorizontal = horizontal;
+		m_handicapQuakeVertical = vertical;
+		if(horizontal || vertical)
+			m_handicapQuakeTimer->start();
+		else
+			m_handicapQuakeTimer->stop();
+	});
+
 }
 
 void CanvasView::scrollBy(int x, int y)
@@ -1081,6 +1099,14 @@ QPointF CanvasView::handicapPointerRemap(QPointF p)
 	if(m_handicapCursorMirror)
 		p.setX(width() - p.x());
 	return p;
+}
+
+void CanvasView::handicapQuake()
+{
+	scrollBy(
+		QRandomGenerator::global()->bounded(-m_handicapQuakeHorizontal, m_handicapQuakeHorizontal),
+		QRandomGenerator::global()->bounded(-m_handicapQuakeVertical, m_handicapQuakeVertical)
+	);
 }
 
 }

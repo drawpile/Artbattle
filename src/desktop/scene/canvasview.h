@@ -28,6 +28,7 @@
 
 class QGestureEvent;
 class QTouchEvent;
+class QTimer;
 
 namespace drawingboard {
 	class CanvasScene;
@@ -215,6 +216,7 @@ private:
 	inline void viewRectChanged() { emit viewRectChange(mapToScene(rect())); }
 
 	QPointF handicapPointerRemap(QPointF p);
+	void handicapQuake();
 
 	CanvasViewShortcuts m_shortcuts;
 
@@ -259,6 +261,10 @@ private:
 	bool m_handicapCursorFlip, m_handicapCursorMirror;
 
 	drawingboard::CanvasScene *m_scene;
+
+	QTimer *m_handicapQuakeTimer;
+
+	int m_handicapQuakeHorizontal, m_handicapQuakeVertical;
 
 	// Input settings
 	PressureMapping m_pressuremapping;

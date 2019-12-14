@@ -48,12 +48,14 @@ signals:
 	void canvasInvert(bool flip, bool mirror, int duration);
 	void hideCursor(int duration);
 	void cursorInvert(bool flip, bool mirror, int duration);
+	void earthquake(int horizontal, int vertical, int duration);
 
 private:
 	QTimer *m_blackoutTimer;
 	QTimer *m_canvasInvertTimer;
 	QTimer *m_hideCursorTimer;
 	QTimer *m_cursorInverTimer;
+	QTimer *m_earthquakeTimer;
 };
 
 }

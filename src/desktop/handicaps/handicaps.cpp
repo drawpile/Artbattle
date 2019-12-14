@@ -44,6 +44,10 @@ HandicapState::HandicapState(QObject *parent)
 	m_cursorInverTimer = new QTimer(this);
 	m_cursorInverTimer->setSingleShot(true);
 	connect(m_cursorInverTimer, &QTimer::timeout, this, [this]() { emit cursorInvert(false, false, 0); });
+
+	m_earthquakeTimer = new QTimer(this);
+	m_earthquakeTimer->setSingleShot(true);
+	connect(m_earthquakeTimer, &QTimer::timeout, this, [this]() { emit earthquake(0, 0, 0); });
 }
 
 void HandicapState::activate(const QString &name, int expiration, const QJsonObject &params)
@@ -101,6 +105,14 @@ void HandicapState::activate(const QString &name, int expiration, const QJsonObj
 			expiration
 		);
 		timer = m_cursorInverTimer;
+
+	} else if(name == "earthquake") {
+		emit earthquake(
+			params["h"].toInt(),
+			params["v"].toInt(),
+			expiration
+		);
+		timer = m_earthquakeTimer;
 
 	} else {
 		qWarning() << "Unhandled handicap type:" << name;
