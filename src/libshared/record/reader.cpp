@@ -261,6 +261,10 @@ Compatibility Reader::readBinaryHeader() {
 
 		// Strict compatibility mode:
 
+		// Known compatible versions
+		if(version == protocol::ProtocolVersion("dp", 4, 21, 2))
+			return COMPATIBLE;
+
 		// A recording made with a newer (major) version may contain unsupported commands.
 		if(current.majorVersion() < version.majorVersion())
 			return UNKNOWN_COMPATIBILITY;
@@ -354,6 +358,11 @@ Compatibility Reader::readTextHeader()
 		// TODO
 
 		// Strict compatibilty mode:
+
+		// Known compatible versions
+		if(version == protocol::ProtocolVersion("dp", 4, 21, 2))
+			return COMPATIBLE;
+
 		// A recording made with a newer (major) version may contain unsupported commands.
 		if(current.majorVersion() < version.majorVersion())
 			return UNKNOWN_COMPATIBILITY;
