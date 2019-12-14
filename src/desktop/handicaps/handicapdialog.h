@@ -45,11 +45,13 @@ public slots:
 	void blackoutActivated(BlackoutMode mode, int radius, int duration);
 	void canvasInvertActivated(bool flip, bool mirror, int duration);
 	void cursorHidden(int duration);
+	void cursorInvertActivated(bool flip, bool mirror, int duration);
 
 private slots:
 	void startBlackout();
 	void startCanvasInvert();
 	void startHideCursor();
+	void startCursorInvert();
 
 	void countdown();
 

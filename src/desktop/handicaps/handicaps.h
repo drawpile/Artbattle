@@ -47,11 +47,13 @@ signals:
 	void blackout(BlackoutMode mode, int radius, int duration);
 	void canvasInvert(bool flip, bool mirror, int duration);
 	void hideCursor(int duration);
+	void cursorInvert(bool flip, bool mirror, int duration);
 
 private:
 	QTimer *m_blackoutTimer;
 	QTimer *m_canvasInvertTimer;
 	QTimer *m_hideCursorTimer;
+	QTimer *m_cursorInverTimer;
 };
 
 }

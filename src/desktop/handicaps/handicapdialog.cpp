@@ -49,9 +49,13 @@ HandicapDialog::HandicapDialog(HandicapState *state, QWidget *parent)
 	connect(m_ui->hideCursorStart, &QPushButton::clicked, this, &HandicapDialog::startHideCursor);
 	connect(m_ui->hideCursorStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });connect(m_ui->blackoutStop, &QPushButton::clicked, this, [this]() { startHandicap("hideCursor", -1, QJsonObject()); });
 
+	connect(m_ui->cursorInvertStart, &QPushButton::clicked, this, &HandicapDialog::startCursorInvert);
+	connect(m_ui->cursorInvertStop, &QPushButton::clicked, this, [this]() { startHandicap("cursorInvert", -1, QJsonObject()); });connect(m_ui->blackoutStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });
+
 	connect(state, &HandicapState::blackout, this, &HandicapDialog::blackoutActivated);
 	connect(state, &HandicapState::canvasInvert, this, &HandicapDialog::canvasInvertActivated);
 	connect(state, &HandicapState::hideCursor, this, &HandicapDialog::cursorHidden);
+	connect(state, &HandicapState::cursorInvert, this, &HandicapDialog::cursorInvertActivated);
 
 	connect(m_ui->stopAllButton, &QPushButton::clicked, this, [this]() { startHandicap(QString(), 0, QJsonObject()); });
 }
@@ -144,6 +148,35 @@ void HandicapDialog::cursorHidden(int duration)
 	m_ui->hideCursorStart->setEnabled(off);
 }
 
+void HandicapDialog::startCursorInvert()
+{
+	QJsonObject params;
+	if(m_ui->cursorFlip->isChecked() || m_ui->cursorFlipMirror->isChecked())
+		params["flip"] = true;
+	if(m_ui->cursorMirror->isChecked() || m_ui->cursorFlipMirror->isChecked())
+		params["mirror"] = true;
+
+	startHandicap("cursorInvert", m_ui->cursorInvertTime->value(), params);
+}
+
+void HandicapDialog::cursorInvertActivated(bool flip, bool mirror, int duration)
+{
+	const bool off = !flip & !mirror;
+
+	if(off) {
+		m_ui->cursorInvertTime->setValue(m_ui->cursorInvertTime->property("originalValue").toInt());
+	} else {
+		m_ui->cursorInvertTime->setProperty("originalValue", m_ui->cursorInvertTime->value());
+		m_ui->cursorInvertTime->setValue(duration);
+	}
+
+	m_ui->cursorFlip->setEnabled(off);
+	m_ui->cursorMirror->setEnabled(off);
+	m_ui->cursorFlipMirror->setEnabled(off);
+	m_ui->cursorInvertStart->setEnabled(off);
+	m_ui->cursorInvertTime->setEnabled(off);
+}
+
 void HandicapDialog::startHandicap(const QString &name, int duration, const QJsonObject &params)
 {
 	QJsonObject cmd;
@@ -162,7 +195,8 @@ void HandicapDialog::countdown()
 	QSpinBox * const countdowns[] = {
 		m_ui->blackoutTime,
 		m_ui->canvasInvertTime,
-		m_ui->hideCursorTime
+		m_ui->hideCursorTime,
+		m_ui->cursorInvertTime
 	};
 
 	for(unsigned int i=0;i<sizeof(countdowns)/sizeof(QWidget*);++i) {

@@ -40,6 +40,10 @@ HandicapState::HandicapState(QObject *parent)
 	m_hideCursorTimer = new QTimer(this);
 	m_hideCursorTimer->setSingleShot(true);
 	connect(m_hideCursorTimer, &QTimer::timeout, this, [this]() { emit hideCursor(0); });
+
+	m_cursorInverTimer = new QTimer(this);
+	m_cursorInverTimer->setSingleShot(true);
+	connect(m_cursorInverTimer, &QTimer::timeout, this, [this]() { emit cursorInvert(false, false, 0); });
 }
 
 void HandicapState::activate(const QString &name, int expiration, const QJsonObject &params)
@@ -48,10 +52,14 @@ void HandicapState::activate(const QString &name, int expiration, const QJsonObj
 		qInfo() << "Clearing all handicaps";
 		emit blackout(BlackoutMode::Off, 0, 0);
 		emit canvasInvert(false, false, 0);
+		emit hideCursor(0);
+		emit cursorInvert(false, false, 0);
 		return;
 	}
 
 	qInfo() << "Handicap:" << name << "expires in" << expiration << "seconds";
+
+	QTimer *timer = nullptr;
 
 	if(name == "blackout") {
 		BlackoutMode mode = BlackoutMode::Simple;
@@ -67,7 +75,7 @@ void HandicapState::activate(const QString &name, int expiration, const QJsonObj
 			mode = BlackoutMode::Off;
 
 		if(expiration > 0)
-			m_blackoutTimer->start(expiration * 1000);
+			timer = m_blackoutTimer;
 		else
 			mode = BlackoutMode::Off;
 
@@ -80,18 +88,26 @@ void HandicapState::activate(const QString &name, int expiration, const QJsonObj
 			expiration
 		);
 
-		if(expiration > 0)
-			m_canvasInvertTimer->start(expiration * 1000);
+		timer = m_canvasInvertTimer;
 
 	} else if(name == "hideCursor") {
 		emit hideCursor(expiration);
-		if(expiration > 0)
-			m_hideCursorTimer->start(expiration * 1000);
+		timer = m_hideCursorTimer;
+
+	} else if(name == "cursorInvert") {
+		emit cursorInvert(
+			params["flip"].toBool(),
+			params["mirror"].toBool(),
+			expiration
+		);
+		timer = m_cursorInverTimer;
 
 	} else {
 		qWarning() << "Unhandled handicap type:" << name;
-		return;
 	}
+
+	if(timer && expiration > 0)
+		timer->start(expiration * 1000);
 }
 
 }

@@ -47,6 +47,7 @@ CanvasView::CanvasView(QWidget *parent)
 	m_outlineSize(2), m_showoutline(true), m_subpixeloutline(true), m_squareoutline(false),
 	m_zoom(100), m_rotate(0), m_flip(false), m_handicapFlip(false), m_mirror(false), m_handicapMirror(false),
 	m_handicapHideCursor(false),
+	m_handicapCursorFlip(false), m_handicapCursorMirror(false),
 	m_scene(nullptr),
 	m_zoomWheelDelta(0),
 	m_enableTablet(true),
@@ -119,6 +120,11 @@ void CanvasView::setCanvas(drawingboard::CanvasScene *scene)
 	connect(m_scene->handicaps(), &handicaps::HandicapState::hideCursor, this, [this](int expiration) {
 		m_handicapHideCursor = expiration > 0;
 		resetCursor();
+	});
+
+	connect(m_scene->handicaps(), &handicaps::HandicapState::cursorInvert, this, [this](bool flip, bool mirror) {
+		m_handicapCursorFlip = flip;
+		m_handicapCursorMirror = mirror;
 	});
 }
 
@@ -539,7 +545,7 @@ void CanvasView::mousePressEvent(QMouseEvent *event)
 		return;
 
 	penPressEvent(
-		event->pos(),
+		handicapPointerRemap(event->pos()),
 		1,
 		event->button(),
 		event->modifiers(),
@@ -591,7 +597,7 @@ void CanvasView::mouseMoveEvent(QMouseEvent *event)
 	}
 
 	penMoveEvent(
-		event->pos(),
+		handicapPointerRemap(event->pos()),
 		1.0,
 		event->buttons(),
 		event->modifiers(),
@@ -601,7 +607,7 @@ void CanvasView::mouseMoveEvent(QMouseEvent *event)
 
 void CanvasView::penReleaseEvent(const QPointF &pos, Qt::MouseButton button)
 {
-	m_prevpoint = mapToScene(pos, 0.0);
+	m_prevpoint = mapToScene(handicapPointerRemap(pos), 0.0);
 	if(m_dragmode != ViewDragMode::None) {
 		if(m_spacebar)
 			m_dragmode = ViewDragMode::Prepared;
@@ -851,7 +857,7 @@ bool CanvasView::viewportEvent(QEvent *event)
 		tabev->accept();
 
 		penPressEvent(
-			tabev->posF(),
+			handicapPointerRemap(tabev->posF()),
 			tabev->pressure(),
 			tabev->button(),
 			QApplication::queryKeyboardModifiers(), // TODO check if tablet event modifiers() is still broken in Qt 5.12
@@ -863,7 +869,7 @@ bool CanvasView::viewportEvent(QEvent *event)
 		tabev->accept();
 
 		penMoveEvent(
-			tabev->posF(),
+			handicapPointerRemap(tabev->posF()),
 			tabev->pressure(),
 			tabev->buttons(),
 			QApplication::queryKeyboardModifiers(), // TODO check if tablet event modifiers() is still broken in Qt 5.12
@@ -1066,6 +1072,15 @@ void CanvasView::resizeEvent(QResizeEvent *e)
 {
 	QGraphicsView::resizeEvent(e);
 	viewRectChanged();
+}
+
+QPointF CanvasView::handicapPointerRemap(QPointF p)
+{
+	if(m_handicapCursorFlip)
+		p.setY(height() - p.y());
+	if(m_handicapCursorMirror)
+		p.setX(width() - p.x());
+	return p;
 }
 
 }

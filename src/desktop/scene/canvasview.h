@@ -214,6 +214,8 @@ private:
 
 	inline void viewRectChanged() { emit viewRectChange(mapToScene(rect())); }
 
+	QPointF handicapPointerRemap(QPointF p);
+
 	CanvasViewShortcuts m_shortcuts;
 
 	/**
@@ -254,6 +256,7 @@ private:
 	bool m_flip, m_handicapFlip; // Flip Y axis
 	bool m_mirror, m_handicapMirror; // Flip X axis
 	bool m_handicapHideCursor;
+	bool m_handicapCursorFlip, m_handicapCursorMirror;
 
 	drawingboard::CanvasScene *m_scene;
 
