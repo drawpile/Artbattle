@@ -46,6 +46,7 @@ CanvasView::CanvasView(QWidget *parent)
 	: QGraphicsView(parent), m_pendown(NOTDOWN), m_penmode(PenMode::Normal), m_dragmode(ViewDragMode::None),
 	m_outlineSize(2), m_showoutline(true), m_subpixeloutline(true), m_squareoutline(false),
 	m_zoom(100), m_rotate(0), m_flip(false), m_handicapFlip(false), m_mirror(false), m_handicapMirror(false),
+	m_handicapHideCursor(false),
 	m_scene(nullptr),
 	m_zoomWheelDelta(0),
 	m_enableTablet(true),
@@ -113,6 +114,11 @@ void CanvasView::setCanvas(drawingboard::CanvasScene *scene)
 		m_handicapFlip = flip;
 		m_handicapMirror = mirror;
 		setZoom(m_zoom);
+	});
+
+	connect(m_scene->handicaps(), &handicaps::HandicapState::hideCursor, this, [this](int expiration) {
+		m_handicapHideCursor = expiration > 0;
+		resetCursor();
 	});
 }
 
@@ -275,6 +281,11 @@ void CanvasView::setToolCursor(const QCursor &cursor)
 
 void CanvasView::resetCursor()
 {
+	if(m_handicapHideCursor) {
+		viewport()->setCursor(Qt::BlankCursor);
+		return;
+	}
+
 	if(m_dragmode == ViewDragMode::Prepared) {
 		viewport()->setCursor(Qt::OpenHandCursor);
 		return;
@@ -360,7 +371,7 @@ void CanvasView::drawForeground(QPainter *painter, const QRectF& rect)
 			painter->drawLine(rect.left(), y, rect.right()+1, y);
 		}
 	}
-	if(m_showoutline && m_outlineSize>0 && m_penmode == PenMode::Normal && m_dragmode == ViewDragMode::None && !m_locked) {
+	if(m_showoutline && m_outlineSize>0 && m_penmode == PenMode::Normal && m_dragmode == ViewDragMode::None && !m_locked && !m_handicapHideCursor) {
 		QRectF outline(m_prevoutlinepoint-QPointF(m_outlineSize/2.0, m_outlineSize/2.0),
 					QSizeF(m_outlineSize, m_outlineSize));
 

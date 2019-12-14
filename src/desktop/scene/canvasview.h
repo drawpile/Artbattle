@@ -253,6 +253,7 @@ private:
 	qreal m_rotate; // View rotation in degrees
 	bool m_flip, m_handicapFlip; // Flip Y axis
 	bool m_mirror, m_handicapMirror; // Flip X axis
+	bool m_handicapHideCursor;
 
 	drawingboard::CanvasScene *m_scene;
 

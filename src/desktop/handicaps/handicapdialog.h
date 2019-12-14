@@ -44,10 +44,13 @@ signals:
 public slots:
 	void blackoutActivated(BlackoutMode mode, int radius, int duration);
 	void canvasInvertActivated(bool flip, bool mirror, int duration);
+	void cursorHidden(int duration);
 
 private slots:
 	void startBlackout();
 	void startCanvasInvert();
+	void startHideCursor();
+
 	void countdown();
 
 private:

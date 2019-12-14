@@ -46,8 +46,12 @@ HandicapDialog::HandicapDialog(HandicapState *state, QWidget *parent)
 	connect(m_ui->canvasInvertStart, &QPushButton::clicked, this, &HandicapDialog::startCanvasInvert);
 	connect(m_ui->canvasInvertStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });connect(m_ui->blackoutStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });
 
+	connect(m_ui->hideCursorStart, &QPushButton::clicked, this, &HandicapDialog::startHideCursor);
+	connect(m_ui->hideCursorStop, &QPushButton::clicked, this, [this]() { startHandicap("canvasInvert", -1, QJsonObject()); });connect(m_ui->blackoutStop, &QPushButton::clicked, this, [this]() { startHandicap("hideCursor", -1, QJsonObject()); });
+
 	connect(state, &HandicapState::blackout, this, &HandicapDialog::blackoutActivated);
 	connect(state, &HandicapState::canvasInvert, this, &HandicapDialog::canvasInvertActivated);
+	connect(state, &HandicapState::hideCursor, this, &HandicapDialog::cursorHidden);
 
 	connect(m_ui->stopAllButton, &QPushButton::clicked, this, [this]() { startHandicap(QString(), 0, QJsonObject()); });
 }
@@ -122,6 +126,24 @@ void HandicapDialog::canvasInvertActivated(bool flip, bool mirror, int duration)
 	m_ui->canvasInvertTime->setEnabled(off);
 }
 
+void HandicapDialog::startHideCursor()
+{
+	startHandicap("hideCursor", m_ui->hideCursorTime->value(), QJsonObject());
+}
+
+void HandicapDialog::cursorHidden(int duration)
+{
+	const bool off = duration <= 0;
+	if(off) {
+		m_ui->hideCursorTime->setValue(m_ui->hideCursorTime->property("originalValue").toInt());
+	} else {
+		m_ui->hideCursorTime->setProperty("originalValue", m_ui->hideCursorTime->value());
+	}
+
+	m_ui->hideCursorTime->setEnabled(off);
+	m_ui->hideCursorStart->setEnabled(off);
+}
+
 void HandicapDialog::startHandicap(const QString &name, int duration, const QJsonObject &params)
 {
 	QJsonObject cmd;
@@ -139,7 +161,8 @@ void HandicapDialog::countdown()
 {
 	QSpinBox * const countdowns[] = {
 		m_ui->blackoutTime,
-		m_ui->canvasInvertTime
+		m_ui->canvasInvertTime,
+		m_ui->hideCursorTime
 	};
 
 	for(unsigned int i=0;i<sizeof(countdowns)/sizeof(QWidget*);++i) {
