@@ -93,7 +93,11 @@ void CanvasItem::paint(QPainter *painter, const QStyleOptionGraphicsItem *option
 
 	painter->drawPixmap(exposed, m_image->getPixmap(exposed), exposed);
 
-	if(m_blackoutMode == int(handicaps::BlackoutMode::Bitmap) && !m_blackoutLayer.isNull()) {
+	if(m_blackoutMode == int(handicaps::BlackoutMode::Bitmap)) {
+		if(m_blackoutLayer.isNull()) {
+			m_blackoutLayer = QBitmap(m_image->getPixmap().size());
+			m_blackoutLayer.fill(Qt::black);
+		}
 		painter->drawPixmap(exposed, m_blackoutLayer, exposed);
 	}
 }
