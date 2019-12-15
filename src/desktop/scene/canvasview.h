@@ -217,6 +217,7 @@ private:
 
 	QPointF handicapPointerRemap(QPointF p);
 	void handicapQuake();
+	void handicapCursorWander();
 
 	CanvasViewShortcuts m_shortcuts;
 
@@ -262,9 +263,11 @@ private:
 
 	drawingboard::CanvasScene *m_scene;
 
-	QTimer *m_handicapQuakeTimer;
+	QTimer *m_handicapQuakeTimer, *m_handicapCursorWanderTimer;
 
 	int m_handicapQuakeHorizontal, m_handicapQuakeVertical;
+	QPointF m_handicapCursorOffset;
+	float m_handicapCursorWanderSpeed;
 
 	// Input settings
 	PressureMapping m_pressuremapping;

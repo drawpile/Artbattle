@@ -288,6 +288,7 @@ MainWindow::MainWindow(bool restoreWindowPosition)
 	// Handicaps (art battle extension)
 	m_handicapDialog = new handicaps::HandicapDialog(m_canvasscene->handicaps(), this);
 	connect(m_handicapDialog, &handicaps::HandicapDialog::message, m_doc->client(), &net::Client::sendMessage);
+	connect(m_canvasscene->handicaps(), &handicaps::HandicapState::brushSizeJitter, m_doc->toolCtrl(), &tools::ToolController::setHandicapBrushSizeJitter);
 
 	// Document <-> Main window connections
 	connect(m_doc, &Document::canvasChanged, this, &MainWindow::onCanvasChanged);

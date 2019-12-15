@@ -60,6 +60,15 @@ void Freehand::motion(const paintcore::Point& point, bool constrain, bool center
 	if(owner.activeBrush().smudge1()>0 || owner.activeBrush().isColorPickMode())
 		srcLayer = owner.model()->layerStack()->getLayer(owner.activeLayer());
 
+	// Art battle extension
+	const qreal handicap = owner.handicapBrushSizeOffset();
+	if(handicap >= 0.01) {
+		auto brush = owner.activeBrush();
+		brush.setSize(qRound(brush.size1() * handicap));
+		brush.setSize2(qRound(brush.size2() * handicap));
+		m_brushengine.setBrush(owner.client()->myId(), owner.activeLayer(), brush);
+	}
+
 	if(m_firstPoint) {
 		m_firstPoint = false;
 		m_brushengine.strokeTo(paintcore::Point(m_start, qMin(m_start.pressure(), point.pressure())), srcLayer);

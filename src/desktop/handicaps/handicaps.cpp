@@ -48,6 +48,14 @@ HandicapState::HandicapState(QObject *parent)
 	m_earthquakeTimer = new QTimer(this);
 	m_earthquakeTimer->setSingleShot(true);
 	connect(m_earthquakeTimer, &QTimer::timeout, this, [this]() { emit earthquake(0, 0, 0); });
+
+	m_wanderingCursorTimer = new QTimer(this);
+	m_wanderingCursorTimer->setSingleShot(true);
+	connect(m_wanderingCursorTimer, &QTimer::timeout, this, [this]() { emit wanderingCursor(0, 0); });
+
+	m_brushSizeJitterTimer = new QTimer(this);
+	m_brushSizeJitterTimer->setSingleShot(true);
+	connect(m_brushSizeJitterTimer, &QTimer::timeout, this, [this]() { emit brushSizeJitter(0, 0); });
 }
 
 void HandicapState::activate(const QString &name, int expiration, const QJsonObject &params)
@@ -58,6 +66,9 @@ void HandicapState::activate(const QString &name, int expiration, const QJsonObj
 		emit canvasInvert(false, false, 0);
 		emit hideCursor(0);
 		emit cursorInvert(false, false, 0);
+		emit earthquake(0, 0, 0);
+		emit wanderingCursor(0, 0);
+		emit brushSizeJitter(0, 0);
 		return;
 	}
 
@@ -113,6 +124,20 @@ void HandicapState::activate(const QString &name, int expiration, const QJsonObj
 			expiration
 		);
 		timer = m_earthquakeTimer;
+
+	} else if(name == "wanderingCursor") {
+		emit wanderingCursor(
+			params["speed"].toDouble(),
+			expiration
+		);
+		timer = m_wanderingCursorTimer;
+
+	} else if(name == "brushSizeJitter") {
+		emit brushSizeJitter(
+			params["strength"].toDouble(),
+			expiration
+		);
+		timer = m_brushSizeJitterTimer;
 
 	} else {
 		qWarning() << "Unhandled handicap type:" << name;

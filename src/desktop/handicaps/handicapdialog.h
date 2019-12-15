@@ -47,6 +47,8 @@ public slots:
 	void cursorHidden(int duration);
 	void cursorInvertActivated(bool flip, bool mirror, int duration);
 	void earthquakeActivated(int h, int v, int duration);
+	void wanderingCursorActivated(float strength, int duration);
+	void brushSizeJitterActivated(float strength, int duration);
 
 private slots:
 	void startBlackout();
@@ -54,6 +56,8 @@ private slots:
 	void startHideCursor();
 	void startCursorInvert();
 	void startEarthquake();
+	void startWanderingCursor();
+	void startBrushSizeJitter();
 
 	void countdown();
 

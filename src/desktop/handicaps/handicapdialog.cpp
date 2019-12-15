@@ -55,11 +55,19 @@ HandicapDialog::HandicapDialog(HandicapState *state, QWidget *parent)
 	connect(m_ui->quakeStart, &QPushButton::clicked, this, &HandicapDialog::startEarthquake);
 	connect(m_ui->quakeStop, &QPushButton::clicked, this, [this]() { startHandicap("earthquake", -1, QJsonObject()); });
 
+	connect(m_ui->cursorJitterStart, &QPushButton::clicked, this, &HandicapDialog::startWanderingCursor);
+	connect(m_ui->cursorJitterStop, &QPushButton::clicked, [this]() { startHandicap("wanderingCursor", -1, QJsonObject()); });
+
+	connect(m_ui->brushSizeJitterStart, &QPushButton::clicked, this, &HandicapDialog::startBrushSizeJitter);
+	connect(m_ui->brushSizeJitterStop, &QPushButton::clicked, [this]() { startHandicap("brushSizeJitter", -1, QJsonObject()); });
+
 	connect(state, &HandicapState::blackout, this, &HandicapDialog::blackoutActivated);
 	connect(state, &HandicapState::canvasInvert, this, &HandicapDialog::canvasInvertActivated);
 	connect(state, &HandicapState::hideCursor, this, &HandicapDialog::cursorHidden);
 	connect(state, &HandicapState::cursorInvert, this, &HandicapDialog::cursorInvertActivated);
 	connect(state, &HandicapState::earthquake, this, &HandicapDialog::earthquakeActivated);
+	connect(state, &HandicapState::wanderingCursor, this, &HandicapDialog::wanderingCursorActivated);
+	connect(state, &HandicapState::brushSizeJitter, this, &HandicapDialog::brushSizeJitterActivated);
 
 	connect(m_ui->stopAllButton, &QPushButton::clicked, this, [this]() { startHandicap(QString(), 0, QJsonObject()); });
 }
@@ -179,6 +187,37 @@ void HandicapDialog::earthquakeActivated(int h, int v, int duration)
 	m_ui->quakeHBox->setEnabled(off);
 }
 
+void HandicapDialog::startWanderingCursor()
+{
+	QJsonObject params;
+	params["speed"] = m_ui->cursorJitter->value() / 10.0;
+	startHandicap("wanderingCursor", m_ui->cursorJitterTime->value(), params);
+}
+
+void HandicapDialog::wanderingCursorActivated(float speed, int duration)
+{
+	const bool off = speed < 0.01f;
+	m_ui->cursorJitterBox->setProperty("countdown", duration);
+	m_ui->cursorJitter->setEnabled(off);
+	m_ui->cursorJitterStart->setEnabled(off);
+	m_ui->cursorJitterTime->setEnabled(off);
+}
+
+void HandicapDialog::startBrushSizeJitter()
+{
+	QJsonObject params;
+	params["strength"] = m_ui->brushSizeJitter->value() / 100.0;
+	startHandicap("brushSizeJitter", m_ui->brushSizeJitterTime->value(), params);
+}
+
+void HandicapDialog::brushSizeJitterActivated(float strength, int duration)
+{
+	const bool off = strength < 0.01f;
+	m_ui->brushSizeJitterBox->setProperty("countdown", duration);
+	m_ui->brushSizeJitter->setEnabled(off);
+	m_ui->brushSizeJitterStart->setEnabled(off);
+	m_ui->brushSizeJitterTime->setEnabled(off);
+}
 
 void HandicapDialog::startHandicap(const QString &name, int duration, const QJsonObject &params)
 {
@@ -195,12 +234,14 @@ void HandicapDialog::startHandicap(const QString &name, int duration, const QJso
 
 void HandicapDialog::countdown()
 {
-	QGroupBox * const countdowns[] = {
+	QGroupBox* const countdowns[] = {
 		m_ui->blackoutBox,
 		m_ui->invertCanvasBox,
 		m_ui->hideCursorBox,
 		m_ui->invertCursorBox,
-		m_ui->earthquakeBox
+		m_ui->earthquakeBox,
+		m_ui->cursorJitterBox,
+		m_ui->brushSizeJitterBox
 	};
 	for(unsigned int i=0;i<sizeof(countdowns)/sizeof(*countdowns);++i) {
 		QGroupBox *w = countdowns[i];

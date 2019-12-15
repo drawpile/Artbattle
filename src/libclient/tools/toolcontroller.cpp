@@ -37,6 +37,9 @@
 #include "canvas/statetracker.h"
 #include "canvas/aclfilter.h"
 
+#include <QTimer>
+#include <QRandomGenerator>
+
 namespace tools {
 
 ToolController::ToolController(net::Client *client, QObject *parent)
@@ -45,7 +48,10 @@ ToolController::ToolController(net::Client *client, QObject *parent)
 	m_client(client), m_model(nullptr),
 	m_activeTool(nullptr),
 	m_prevShift(false), m_prevAlt(false),
-	m_smoothing(0)
+	m_smoothing(0),
+	m_handicapBrushSizeJitter(0),
+	m_handicapBrushSizeOffset(0),
+	m_handicapBrushSizeOffsetTarget(0)
 {
 	Q_ASSERT(client);
 
@@ -67,6 +73,24 @@ ToolController::ToolController(net::Client *client, QObject *parent)
 	m_activeTool = m_toolbox[Tool::FREEHAND];
 	m_activeLayer = 0;
 	m_activeAnnotation = 0;
+
+	m_handicapBrushSizeJitterTimer = new QTimer(this);
+	m_handicapBrushSizeJitterTimer->setSingleShot(false);
+	m_handicapBrushSizeJitterTimer->setInterval(33);
+	connect(m_handicapBrushSizeJitterTimer, &QTimer::timeout,
+		this, [this]() {
+			if(qAbs(m_handicapBrushSizeOffset - m_handicapBrushSizeOffsetTarget) < 0.015) {
+				m_handicapBrushSizeOffsetTarget =
+					1.0 + QRandomGenerator::global()->bounded(m_handicapBrushSizeJitter*2) - m_handicapBrushSizeJitter;
+			}
+
+			qreal delta =
+				(m_handicapBrushSizeOffsetTarget - m_handicapBrushSizeOffset) / 10.0;
+			if(qAbs(delta) < 0.01)
+				delta = delta < 0 ? -0.01 : 0.01;
+			m_handicapBrushSizeOffset += delta;
+		}
+	);
 }
 
 void ToolController::registerTool(Tool *tool)
@@ -318,6 +342,19 @@ void ToolController::offsetActiveTool(int xOffset, int yOffset)
 	Q_ASSERT(m_activeTool);
 	m_activeTool->offsetActiveTool(xOffset, yOffset);
 	m_smoother.addOffset(QPointF(xOffset, yOffset));
+}
+
+void ToolController::setHandicapBrushSizeJitter(float strength)
+{
+	m_handicapBrushSizeJitter = strength;
+	if(strength > 0.01f) {
+		m_handicapBrushSizeOffset = 1;
+		m_handicapBrushSizeOffsetTarget = 1;
+		m_handicapBrushSizeJitterTimer->start();
+	} else {
+		m_handicapBrushSizeJitterTimer->stop();
+		m_handicapBrushSizeOffset = 0;
+	}
 }
 
 }

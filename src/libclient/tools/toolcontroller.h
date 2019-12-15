@@ -89,6 +89,8 @@ public:
 	 */
 	void offsetActiveTool(int xOffset, int yOffset);
 
+	float handicapBrushSizeOffset() const { return m_handicapBrushSizeOffset; }
+
 public slots:
 	//! Start a new stroke
 	void startDrawing(const QPointF &point, qreal pressure, bool right, float zoom);
@@ -117,6 +119,9 @@ public slots:
 
 	//! Cancel the current multipart drawing (if any)
 	void cancelMultipartDrawing();
+
+	//! ArtBattle extension: set brush size jitter strength
+	void setHandicapBrushSizeJitter(float strength);
 
 signals:
 	void activeToolChanged(Tool::Type type);
@@ -150,6 +155,11 @@ private:
 
 	int m_smoothing;
 	StrokeSmoother m_smoother;
+
+	QTimer *m_handicapBrushSizeJitterTimer;
+	float m_handicapBrushSizeJitter;
+	float m_handicapBrushSizeOffset;
+	float m_handicapBrushSizeOffsetTarget;
 };
 
 }

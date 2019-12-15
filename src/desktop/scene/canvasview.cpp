@@ -92,6 +92,11 @@ CanvasView::CanvasView(QWidget *parent)
 	m_handicapQuakeTimer->setInterval(300);
 	connect(m_handicapQuakeTimer, &QTimer::timeout, this, &CanvasView::handicapQuake);
 
+	m_handicapCursorWanderTimer = new QTimer(this);
+	m_handicapCursorWanderTimer->setSingleShot(false);
+	m_handicapCursorWanderTimer->setInterval(15);
+	connect(m_handicapCursorWanderTimer, &QTimer::timeout, this, &CanvasView::handicapCursorWander);
+
 	updateShortcuts();
 }
 
@@ -142,6 +147,24 @@ void CanvasView::setCanvas(drawingboard::CanvasScene *scene)
 			m_handicapQuakeTimer->start();
 		else
 			m_handicapQuakeTimer->stop();
+	});
+
+	connect(m_scene->handicaps(), &handicaps::HandicapState::earthquake, this, [this](int horizontal, int vertical) {
+		m_handicapQuakeHorizontal = horizontal;
+		m_handicapQuakeVertical = vertical;
+		if(horizontal || vertical)
+			m_handicapQuakeTimer->start();
+		else
+			m_handicapQuakeTimer->stop();
+	});
+
+	connect(m_scene->handicaps(), &handicaps::HandicapState::wanderingCursor, this, [this](float speed) {
+		m_handicapCursorOffset = QPointF();
+		m_handicapCursorWanderSpeed = speed;
+		if(speed < 0.01f)
+			m_handicapCursorWanderTimer->stop();
+		else
+			m_handicapCursorWanderTimer->start();
 	});
 
 }
@@ -1098,6 +1121,9 @@ QPointF CanvasView::handicapPointerRemap(QPointF p)
 		p.setY(height() - p.y());
 	if(m_handicapCursorMirror)
 		p.setX(width() - p.x());
+
+	p += m_handicapCursorOffset;
+
 	return p;
 }
 
@@ -1106,6 +1132,15 @@ void CanvasView::handicapQuake()
 	scrollBy(
 		QRandomGenerator::global()->bounded(-m_handicapQuakeHorizontal, m_handicapQuakeHorizontal),
 		QRandomGenerator::global()->bounded(-m_handicapQuakeVertical, m_handicapQuakeVertical)
+	);
+}
+
+void CanvasView::handicapCursorWander()
+{
+	qreal range = m_handicapCursorWanderSpeed;
+	m_handicapCursorOffset += QPointF(
+		QRandomGenerator::global()->bounded(range*2) - range,
+		QRandomGenerator::global()->bounded(range*2) - range
 	);
 }
 

@@ -49,6 +49,8 @@ signals:
 	void hideCursor(int duration);
 	void cursorInvert(bool flip, bool mirror, int duration);
 	void earthquake(int horizontal, int vertical, int duration);
+	void wanderingCursor(float speed, int duration);
+	void brushSizeJitter(float strength, int duration);
 
 private:
 	QTimer *m_blackoutTimer;
@@ -56,6 +58,8 @@ private:
 	QTimer *m_hideCursorTimer;
 	QTimer *m_cursorInverTimer;
 	QTimer *m_earthquakeTimer;
+	QTimer *m_wanderingCursorTimer;
+	QTimer *m_brushSizeJitterTimer;
 };
 
 }
