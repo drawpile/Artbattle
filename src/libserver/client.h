@@ -74,6 +74,14 @@ public:
 	void setId(uint8_t id);
 
 	/**
+	 * @brief Get an authenticated user's flags
+	 *
+	 * User flags come from the account system, either the built-in one or ext-auth.
+	 */
+	QStringList authFlags() const;
+	void setAuthFlags(const QStringList &flags);
+
+	/**
 	 * @brief Get the user name of this client
 	 * @return user name
 	 */
@@ -146,6 +154,13 @@ public:
 	 * @param timeout timeout in milliseconds
 	 */
 	void setConnectionTimeout(int timeout);
+
+	/**
+	 * Get the timestamp of this client's last activity (i.e. non-keepalive message received)
+	 *
+	 * Returned value is given in milliseconds since Epoch.
+	 */
+	qint64 lastActive() const;
 
 #ifndef NDEBUG
 	void setRandomLag(uint lag);

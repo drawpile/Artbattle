@@ -36,6 +36,10 @@
 #include <QNetworkRequest>
 #include <QNetworkReply>
 
+#ifndef Q_FALLTHROUGH
+	#define Q_FALLTHROUGH() (void)0  // work-around for qt<5.8
+#endif
+
 namespace server {
 
 Sessions::~Sessions()
@@ -189,6 +193,17 @@ void LoginHandler::handleLoginMessage(protocol::MessagePtr msg)
 	}
 }
 
+static QStringList jsonArrayToStringList(const QJsonArray &a)
+{
+	QStringList sl;
+	for(const auto &v : a) {
+		const auto s = v.toString();
+		if(!s.isEmpty())
+			sl << s;
+	}
+	return sl;
+}
+
 void LoginHandler::handleIdentMessage(const protocol::ServerCommand &cmd)
 {
 	if(cmd.args.size()!=1 && cmd.args.size()!=2) {
@@ -264,9 +279,10 @@ void LoginHandler::handleIdentMessage(const protocol::ServerCommand &cmd)
 				authLoginOk(
 					ea["username"].toString(),
 					extAuthId,
-					ea["flags"].toArray(),
+					jsonArrayToStringList(ea["flags"].toArray()),
 					avatar,
-					m_config->getConfigBool(config::ExtAuthMod)
+					m_config->getConfigBool(config::ExtAuthMod),
+					m_config->getConfigBool(config::ExtAuthHost)
 					);
 
 			} else {
@@ -321,33 +337,35 @@ void LoginHandler::handleIdentMessage(const protocol::ServerCommand &cmd)
 		authLoginOk(
 			username,
 			QStringLiteral("internal:%1").arg(userAccount.userId),
-			QJsonArray::fromStringList(userAccount.flags),
+			userAccount.flags,
 			QByteArray(),
+			true,
 			true
 		);
 		break;
 	}
 }
 
-void LoginHandler::authLoginOk(const QString &username, const QString &authId, const QJsonArray &flags, const QByteArray &avatar, bool allowMod)
+void LoginHandler::authLoginOk(const QString &username, const QString &authId, const QStringList &flags, const QByteArray &avatar, bool allowMod, bool allowHost)
 {
 	Q_ASSERT(!authId.isEmpty());
 
 	m_client->setUsername(username);
 	m_client->setAuthId(authId);
+	m_client->setAuthFlags(flags);
 
 	protocol::ServerReply identReply;
 	identReply.type = protocol::ServerReply::RESULT;
 	identReply.message = "Authenticated login OK!";
 	identReply.reply["state"] = "identOk";
-	identReply.reply["flags"] = flags;
+	identReply.reply["flags"] = QJsonArray::fromStringList(flags);
 	identReply.reply["ident"] = m_client->username();
 	identReply.reply["guest"] = false;
 
 	m_client->setModerator(flags.contains("MOD") && allowMod);
 	if(!avatar.isEmpty())
 		m_client->setAvatar(avatar);
-	m_hostPrivilege = flags.contains("HOST");
+	m_hostPrivilege = flags.contains("HOST") && allowHost;
 	m_state = State::WaitForLogin;
 
 	send(identReply);
@@ -522,7 +540,12 @@ void LoginHandler::handleHostMessage(const protocol::ServerCommand &cmd)
 	// Create a new session
 	Session *session;
 	QString sessionErrorCode;
-	std::tie(session, sessionErrorCode) = m_sessions->createSession(QUuid::createUuid(), sessionAlias, protocolVersion, m_client->username());
+	std::tie(session, sessionErrorCode) = m_sessions->createSession(
+		Ulid::make().toString(),
+		sessionAlias,
+		protocolVersion,
+		m_client->username()
+		);
 
 	if(!session) {
 		QString msg;
@@ -549,7 +572,7 @@ void LoginHandler::handleHostMessage(const protocol::ServerCommand &cmd)
 	reply.reply["state"] = "host";
 
 	QJsonObject joinInfo;
-	joinInfo["id"] = sessionAlias.isEmpty() ? session->idString() : sessionAlias;
+	joinInfo["id"] = sessionAlias.isEmpty() ? session->id() : sessionAlias;
 	joinInfo["user"] = userId;
 	joinInfo["flags"] = sessionFlags(session);
 	reply.reply["join"] = joinInfo;

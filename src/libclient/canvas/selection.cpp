@@ -1,7 +1,7 @@
 /*
    Drawpile - a collaborative drawing program.
 
-   Copyright (C) 2015-2019 Calle Laakkonen
+   Copyright (C) 2015-2020 Calle Laakkonen
 
    Drawpile is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -306,13 +306,21 @@ void Selection::addPointToShape(const QPointF &point)
 	}
 }
 
-void Selection::closeShape()
+bool Selection::closeShape(const QRectF &clipRect)
 {
 	if(!m_closedPolygon) {
+		QPolygonF intersection = m_shape.intersected(clipRect);
+		if(intersection.isEmpty())
+			return false;
+		intersection.pop_back(); // We use implicitly closed polygons
+		m_shape = intersection;
+
 		m_closedPolygon = true;
 		saveShape();
 		emit closed();
 	}
+
+	return true;
 }
 
 static bool isAxisAlignedRectangle(const QPolygon &p)
@@ -444,6 +452,11 @@ protocol::MessageList Selection::pasteOrMoveToCanvas(uint8_t contextId, int laye
 		msgs << net::command::putQImage(contextId, layer, offset.x(), offset.y(), image, paintcore::BlendMode::MODE_NORMAL);
 	}
 	return msgs;
+}
+
+QImage Selection::transformedPasteImage() const
+{
+	return tools::SelectionTool::transformSelectionImage(m_pasteImage, m_shape.toPolygon(), nullptr);
 }
 
 protocol::MessageList Selection::fillCanvas(uint8_t contextId, const QColor &color, paintcore::BlendMode::Mode mode, int layer) const

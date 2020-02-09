@@ -201,7 +201,7 @@ void Session::joinUser(Client *user, bool host)
 	if(user->isOperator() || m_history->isOperator(user->authId()))
 		changeOpStatus(user->id(), true, "the server");
 
-	if(m_history->isTrusted(user->authId()))
+	if(user->authFlags().contains("TRUSTED") || m_history->isTrusted(user->authId()))
 		changeTrustedStatus(user->id(), true, "the server");
 
 	ensureOperatorExists();
@@ -1003,7 +1003,7 @@ void Session::sendAbuseReport(const Client *reporter, int aboutUser, const QStri
 	}
 
 	QJsonObject o;
-	o["session"] = idString();
+	o["session"] = id();
 	o["sessionTitle"] = m_history->title();
 	o["user"] = reporter->username();
 	o["auth"] = reporter->isAuthenticated();
@@ -1045,7 +1045,7 @@ QJsonObject Session::getDescription(bool full) const
 	// The basic description contains just the information
 	// needed for the login session listing
 	QJsonObject o {
-		{"id", idString()},
+		{"id", id()},
 		{"alias", idAlias()},
 		{"protocol", m_history->protocolVersion().asString()},
 		{"userCount", userCount()},
@@ -1056,7 +1056,7 @@ QJsonObject Session::getDescription(bool full) const
 		{"closed", isClosed()},
 		{"authOnly", m_history->hasFlag(SessionHistory::AuthOnly)},
 		{"nsfm", m_history->hasFlag(SessionHistory::Nsfm)},
-		{"startTime", m_history->startTime().toUTC().toString(Qt::ISODate)},
+		{"startTime", m_history->startTime().toString(Qt::ISODate)},
 		{"size", int(m_history->sizeInBytes())}
 	};
 

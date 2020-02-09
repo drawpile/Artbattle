@@ -1,7 +1,7 @@
 /*
    Drawpile - a collaborative drawing program.
 
-   Copyright (C) 2019 Calle Laakkonen
+   Copyright (C) 2013-2014 Calle Laakkonen
 
    Drawpile is free software: you can redistribute it and/or modify
    it under the terms of the GNU General Public License as published by
@@ -17,32 +17,24 @@
    along with Drawpile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef BUILTINSESSION_H
-#define BUILTINSESSION_H
+#ifndef CHATWIDGETPINNEDAREA_H
+#define CHATWIDGETPINNEDAREA_H
 
-#include "thicksession.h"
+#include <QLabel>
 
-namespace server {
+namespace widgets {
 
-/**
- * @brief A specialized ThickSession that piggybacks on the client's canvas
- */
-class BuiltinSession : public ThickSession
+class ChatWidgetPinnedArea : public QLabel
 {
 	Q_OBJECT
 public:
-	BuiltinSession(ServerConfig *config, sessionlisting::Announcements *announcements, canvas::StateTracker *statetracker, const canvas::AclFilter *aclFilter, const QString &id, const QString &idAlias, const QString &founder, QObject *parent=nullptr);
-
-public slots:
-	void doInternalResetNow();
+	explicit ChatWidgetPinnedArea(QWidget *parent = nullptr);
+	void setPinText(const QString &);
 
 protected:
-	void onClientJoin(Client *client, bool host) override;
-
-private:
-	bool m_softResetRequested = false;
+	void mouseDoubleClickEvent(QMouseEvent *event);
 };
 
 }
 
-#endif // BUILTINSESSION_H
+#endif // CHATWIDGETPINNEDAREA_H

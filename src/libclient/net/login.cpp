@@ -253,7 +253,7 @@ void LoginHandler::prepareToSendIdentity()
 		else
 			prompt = tr("Password needed to log in as \"%1\"").arg(m_address.userName());
 
-		emit loginNeeded(prompt);
+		emit loginNeeded(m_address.userName(), prompt);
 
 	} else {
 		sendIdentity();
@@ -345,8 +345,12 @@ void LoginHandler::requestExtAuth(const QString &username, const QString &passwo
 
 			emit extAuthComplete(false);
 
+		} else if(status == "outgroup") {
+			qWarning("Ext-auth error: group membership needed");
+			failLogin(tr("Group membership needed"));
+
 		} else {
-			failLogin(tr("Unexpected ext-auth response: %s").arg(status));
+			failLogin(tr("Unexpected ext-auth response: %1").arg(status));
 		}
 	});
 }
@@ -379,7 +383,7 @@ void LoginHandler::expectIdentified(const protocol::ServerReply &msg)
 		m_extAuthGroup = msg.reply["group"].toString();
 		m_extAuthNonce = msg.reply["nonce"].toString();
 
-		emit extAuthNeeded(m_extAuthUrl);
+		emit extAuthNeeded(m_address.userName(), m_extAuthUrl);
 		return;
 	}
 
@@ -537,7 +541,7 @@ void LoginHandler::expectLoginOk(const protocol::ServerReply &msg)
 	}
 
 	if(msg.reply["state"] == "join" || msg.reply["state"] == "host") {
-		m_loggedInSessionId = msg.reply["join"].toObject()["id"].toString();
+		m_address.setPath("/" + msg.reply["join"].toObject()["id"].toString());
 		const int userid = msg.reply["join"].toObject()["user"].toInt();
 
 		if(userid < 1 || userid > 254) {
@@ -829,14 +833,6 @@ void LoginHandler::send(const protocol::ServerCommand &cmd)
 	} else {
 		m_server->sendMessage(msg);
 	}
-}
-
-QString LoginHandler::sessionId() const {
-	Q_ASSERT(!m_loggedInSessionId.isEmpty());
-	if(m_mode == Mode::HostRemote && !m_sessionAlias.isEmpty())
-		return m_sessionAlias;
-
-	return m_loggedInSessionId;
 }
 
 bool LoginHandler::hasUserFlag(const QString &flag) const

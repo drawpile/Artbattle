@@ -24,7 +24,6 @@
 #include "../libshared/net/protover.h"
 
 #include <QDir>
-#include <QDateTime>
 #include <QVector>
 #include <QSet>
 
@@ -46,7 +45,7 @@ public:
 	 * @param parent
 	 * @return FiledHistory object or nullptr on error
 	 */
-	static FiledHistory *startNew(const QDir &dir, const QUuid &id, const QString &alias, const protocol::ProtocolVersion &version, const QString &founder, QObject *parent=nullptr);
+	static FiledHistory *startNew(const QDir &dir, const QString &id, const QString &alias, const protocol::ProtocolVersion &version, const QString &founder, QObject *parent=nullptr);
 
 	/**
 	 * @brief Load a session from file
@@ -71,7 +70,7 @@ public:
 	void setArchive(bool archive) { m_archive = archive; }
 
 	//! Get the metadata journal file name for the given session ID
-	static QString journalFilename(const QUuid &id);
+	static QString journalFilename(const QString &id);
 
 	QString idAlias() const override { return m_alias; }
 	QString founderName() const override { return m_founder; }
@@ -83,7 +82,6 @@ public:
 	uint autoResetThreshold() const override { return m_autoResetThreshold; }
 	Flags flags() const override { return m_flags; }
 
-	QDateTime startTime() const override;
 	void setPasswordHash(const QByteArray &password) override;
 	void setOpwordHash(const QByteArray &opword) override;
 	void setMaxUsers(int max) override;
@@ -115,8 +113,8 @@ protected:
 	void timerEvent(QTimerEvent *event) override;
 
 private:
-	FiledHistory(const QDir &dir, QFile *journal, const QUuid &id, const QString &alias, const protocol::ProtocolVersion &version, const QString &founder, QObject *parent);
-	FiledHistory(const QDir &dir, QFile *journal, const QUuid &id, QObject *parent);
+	FiledHistory(const QDir &dir, QFile *journal, const QString &id, const QString &alias, const protocol::ProtocolVersion &version, const QString &founder, QObject *parent);
+	FiledHistory(const QDir &dir, QFile *journal, const QString &id, QObject *parent);
 
 	struct Block {
 		qint64 startOffset;

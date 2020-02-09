@@ -22,7 +22,6 @@
 #include "sessionhistory.h"
 #include "../libshared/net/protover.h"
 
-#include <QDateTime>
 #include <QSet>
 
 namespace server {
@@ -33,7 +32,7 @@ namespace server {
 class InMemoryHistory : public SessionHistory {
 	Q_OBJECT
 public:
-	InMemoryHistory(const QUuid &id, const QString &alias, const protocol::ProtocolVersion &version, const QString &founder, QObject *parent=nullptr);
+	InMemoryHistory(const QString &id, const QString &alias, const protocol::ProtocolVersion &version, const QString &founder, QObject *parent=nullptr);
 
 	std::tuple<protocol::MessageList, int> getBatch(int after) const override;
 
@@ -47,7 +46,6 @@ public:
 	void setPasswordHash(const QByteArray &password) override { m_password = password; }
 	QByteArray opwordHash() const override { return m_opword; }
 	void setOpwordHash(const QByteArray &opword) override { m_opword = opword; }
-	QDateTime startTime() const override { return m_startTime; }
 	int maxUsers() const override { return m_maxUsers; }
 	void setMaxUsers(int max) override { m_maxUsers = qBound(1, max, 254); }
 	QString title() const override { return m_title; }
@@ -95,7 +93,6 @@ private:
 	QString m_founder;
 	QString m_title;
 	protocol::ProtocolVersion m_version;
-	QDateTime m_startTime;
 	QByteArray m_password;
 	QByteArray m_opword;
 	int m_maxUsers;

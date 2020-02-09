@@ -17,32 +17,41 @@
    along with Drawpile.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef BUILTINSESSION_H
-#define BUILTINSESSION_H
+#include <QWidget>
 
-#include "thicksession.h"
+class QLabel;
+class QPushButton;
 
-namespace server {
+namespace widgets {
 
-/**
- * @brief A specialized ThickSession that piggybacks on the client's canvas
- */
-class BuiltinSession : public ThickSession
+class NotificationBar : public QWidget
 {
 	Q_OBJECT
 public:
-	BuiltinSession(ServerConfig *config, sessionlisting::Announcements *announcements, canvas::StateTracker *statetracker, const canvas::AclFilter *aclFilter, const QString &id, const QString &idAlias, const QString &founder, QObject *parent=nullptr);
+	enum class RoleColor {
+		Warning
+	};
 
-public slots:
-	void doInternalResetNow();
+	NotificationBar(QWidget *parent);
+
+	void show(const QString &text, const QString &actionButtonLabel, RoleColor color);
+
+signals:
+	void actionButtonClicked();
 
 protected:
-	void onClientJoin(Client *client, bool host) override;
+	bool eventFilter(QObject *obj, QEvent *event) override;
+	void paintEvent(QPaintEvent *) override;
+	void showEvent(QShowEvent *) override;
+	void hideEvent(QHideEvent *) override;
 
 private:
-	bool m_softResetRequested = false;
+	void setColor(const QColor &color);
+	void updateSize(const QSize &parentSize);
+
+	QColor m_color;
+	QLabel *m_label;
+	QPushButton *m_actionButton;
 };
 
 }
-
-#endif // BUILTINSESSION_H

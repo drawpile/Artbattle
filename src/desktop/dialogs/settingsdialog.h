@@ -52,10 +52,10 @@ private slots:
 
 	void addListingServer();
 	void removeListingServer();
+	void moveListingServerUp();
+	void moveListingServerDown();
 
 	void lockParentalControls();
-
-	void removeStoredPassword();
 
 	void addAvatar();
 	void removeSelectedAvatar();

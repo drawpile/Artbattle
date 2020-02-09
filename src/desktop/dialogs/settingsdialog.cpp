@@ -28,7 +28,6 @@
 #include "utils/customshortcutmodel.h"
 #include "utils/listservermodel.h"
 #include "utils/listserverdelegate.h"
-#include "utils/passwordstore.h"
 #include "utils/avatarlistmodel.h"
 #include "parentalcontrols/parentalcontrols.h"
 #include "../libshared/listings/announcementapi.h"
@@ -178,18 +177,11 @@ SettingsDialog::SettingsDialog(QWidget *parent)
 
 	connect(m_ui->addListServer, &QPushButton::clicked, this, &SettingsDialog::addListingServer);
 	connect(m_ui->removeListServer, &QPushButton::clicked, this, &SettingsDialog::removeListingServer);
+	connect(m_ui->listserverUp, &QPushButton::clicked, this, &SettingsDialog::moveListingServerUp);
+	connect(m_ui->listserverDown, &QPushButton::clicked, this, &SettingsDialog::moveListingServerDown);
 
 	// Parental controls
 	connect(m_ui->nsfmLock, &QPushButton::clicked, this, &SettingsDialog::lockParentalControls);
-
-	// Stored password list
-	PasswordStore passwords;
-	passwords.load();
-
-	m_ui->passwordListView->setModel(passwords.toStandardItemModel(m_ui->passwordListView));
-	m_ui->passwordListView->expandAll();
-
-	connect(m_ui->passwordListRemove, &QPushButton::clicked, this, &SettingsDialog::removeStoredPassword);
 
 	// Avatar list
 	m_avatars = new AvatarListModel(this);
@@ -271,6 +263,8 @@ void SettingsDialog::restoreSettings()
 	m_ui->brushCursorBox->setCurrentIndex(cfg.value("brushcursor").toInt());
 	m_ui->toolToggleShortcut->setChecked(cfg.value("tooltoggle", true).toBool());
 	m_ui->shareBrushSlotColor->setChecked(cfg.value("sharebrushslotcolor", false).toBool());
+
+	m_ui->insecurePasswordStorage->setChecked(cfg.value("insecurepasswordstorage", false).toBool());
 
 	cfg.endGroup();
 
@@ -387,6 +381,7 @@ void SettingsDialog::rememberSettings()
 	cfg.setValue("settings/brushcursor", m_ui->brushCursorBox->currentIndex());
 	cfg.setValue("settings/tooltoggle", m_ui->toolToggleShortcut->isChecked());
 	cfg.setValue("settings/sharebrushslotcolor", m_ui->shareBrushSlotColor->isChecked());
+	cfg.setValue("settings/insecurepasswordstorage", m_ui->insecurePasswordStorage->isChecked());
 
 	cfg.beginGroup("settings/input");
 #if defined(Q_OS_WIN) && defined(KIS_TABLET)
@@ -674,6 +669,22 @@ void SettingsDialog::addListingServer()
 	});
 }
 
+void SettingsDialog::moveListingServerUp()
+{
+	QModelIndex selection = m_ui->listserverview->selectionModel()->currentIndex();
+	if(selection.isValid()) {
+		m_listservers->moveRow(QModelIndex(), selection.row(), QModelIndex(), selection.row()-1);
+	}
+}
+
+void SettingsDialog::moveListingServerDown()
+{
+	QModelIndex selection = m_ui->listserverview->selectionModel()->currentIndex();
+	if(selection.isValid()) {
+		m_listservers->moveRow(QModelIndex(), selection.row(), QModelIndex(), selection.row()+1);
+	}
+}
+
 void SettingsDialog::removeListingServer()
 {
 	QModelIndex selection = m_ui->listserverview->selectionModel()->currentIndex();
@@ -720,29 +731,6 @@ void SettingsDialog::lockParentalControls()
 	}
 
 	setParentalControlsLocked(locked);
-}
-
-void SettingsDialog::removeStoredPassword()
-{
-	const QModelIndex idx = m_ui->passwordListView->currentIndex();
-	if(idx.isValid()) {
-		const QString server = idx.data(Qt::UserRole+1).toString();
-		const QString username = idx.data(Qt::UserRole+2).toString();
-		const PasswordStore::Type type = PasswordStore::Type(idx.data(Qt::UserRole+3).toInt());
-
-		PasswordStore passwords;
-		passwords.load();
-
-		if(passwords.forgetPassword(server, username, type)) {
-			QString error;
-			if(!passwords.save(&error)) {
-				m_ui->passwordListMessage->setText(error);
-			} else {
-				delete m_ui->passwordListView->model();
-				m_ui->passwordListView->setModel(passwords.toStandardItemModel(m_ui->passwordListView));
-			}
-		}
-	}
 }
 
 void SettingsDialog::addAvatar()

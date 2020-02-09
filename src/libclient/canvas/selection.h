@@ -58,8 +58,12 @@ public:
 	//! Add a point to the selection polygon. The shape must be open
 	void addPointToShape(const QPointF &point);
 
-	//! Close the selection
-	void closeShape();
+	/**
+	 * Close the selection and clip it to the given rectangle
+	 * @param clipRect rectangle that represents the working area
+	 * @return false if selection was entirely outside the clip rectangle
+	 */
+	bool closeShape(const QRectF &clipRect);
 
 	/**
 	 * @brief Is the polygon closed?
@@ -118,6 +122,9 @@ public:
 	//! Did the selection buffer come from the canvas? (as opposed to an external pasted image)
 	bool isMovedFromCanvas() const { return !m_moveRegion.isEmpty(); }
 
+	//! Get the shape at which the move started
+	QPolygonF moveSourceRegion() const { return m_moveRegion; }
+
 	QRect boundingRect() const { return m_shape.boundingRect().toRect(); }
 
 	QImage shapeMask(const QColor &color, QRect *maskBounds) const;
@@ -138,6 +145,9 @@ public:
 
 	//! Get the image to be pasted (or the move preview)
 	QImage pasteImage() const { return m_pasteImage; }
+
+	//! Get the image to be pasted with the current transformation applied
+	QImage transformedPasteImage() const;
 
 	/**
 	 * @brief Generate the commands to paste or move an image

@@ -52,12 +52,19 @@ public:
 	QVariant data(const QModelIndex &index, int role=Qt::DisplayRole) const override;
 
 	bool removeRows(int row, int count, const QModelIndex &parent) override;
+	bool moveRow(const QModelIndex &sourceParent, int sourceRow, const QModelIndex &destinationParent, int destinationChild);
 
 	/**
 	 * @brief Add a new server to the list
 	 * @return false if an existing item was updated instead of added
 	 */
 	bool addServer(const QString &name, const QString &url, const QString &description, bool readonly, bool pub, bool priv);
+
+	/**
+	 * @brief Remove the server with the given URL
+	 * @return false if no such server was found
+	 */
+	bool removeServer(const QString &url);
 
 	//!  Set the favicon for the server with the given URL
 	void setFavicon(const QString &url, const QImage &icon);

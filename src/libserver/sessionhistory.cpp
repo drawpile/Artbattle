@@ -20,8 +20,9 @@
 
 namespace server {
 
-SessionHistory::SessionHistory(const QUuid &id, QObject *parent)
-	: QObject(parent), m_id(id), m_sizeInBytes(0), m_sizeLimit(0), m_autoResetBaseSize(0),
+SessionHistory::SessionHistory(const QString &id, QObject *parent)
+	: QObject(parent), m_id(id), m_startTime(QDateTime::currentDateTimeUtc()),
+	  m_sizeInBytes(0), m_sizeLimit(0), m_autoResetBaseSize(0),
 	  m_firstIndex(0), m_lastIndex(-1)
 {
 }

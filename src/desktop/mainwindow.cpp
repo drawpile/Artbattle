@@ -394,6 +394,10 @@ MainWindow::MainWindow(bool restoreWindowPosition)
 
 	connect(m_canvasscene, &drawingboard::CanvasScene::canvasResized, m_doc->toolCtrl(), &tools::ToolController::offsetActiveTool);
 
+	connect(m_view, &widgets::CanvasView::reconnectRequested, this, [this]() {
+		joinSession(m_doc->client()->sessionUrl(true));
+	});
+
 	// Network status changes
 	connect(m_doc, &Document::serverConnected, this, &MainWindow::onServerConnected);
 	connect(m_doc, &Document::serverLoggedIn, this, &MainWindow::onServerLogin);
@@ -1556,6 +1560,7 @@ void MainWindow::joinSession(const QUrl& url, const QString &autoRecordFile)
 		return;
 	}
 
+	qInfo() << "logging back in to" << url;
 	net::LoginHandler *login = new net::LoginHandler(net::LoginHandler::Mode::Join, url, this);
 	auto *dlg = new dialogs::LoginDialog(login, this);
 	connect(m_doc, &Document::catchupProgress, dlg, &dialogs::LoginDialog::catchupProgress);
@@ -1640,6 +1645,10 @@ void MainWindow::onServerDisconnected(const QString &message, const QString &err
 		// open at the same time (in this case, the login dialog that hasn't closed yet)
 		// the main window will still be stuck after the dialogs close.
 		QTimer::singleShot(1, msgbox, &QMessageBox::show);
+	}
+	// If logged in but disconnected unexpectedly, show notification bar
+	else if(m_doc->client()->isLoggedIn() && !localDisconnect) {
+		m_view->showDisconnectedWarning(tr("Disconnected:") + " " + message);
 	}
 }
 

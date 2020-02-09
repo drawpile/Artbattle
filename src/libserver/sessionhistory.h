@@ -25,7 +25,7 @@
 #include "idqueue.h"
 
 #include <QObject>
-#include <QUuid>
+#include <QDateTime>
 #include <tuple>
 
 namespace protocol {
@@ -52,10 +52,10 @@ public:
 	};
 	Q_DECLARE_FLAGS(Flags, Flag)
 
-	SessionHistory(const QUuid &id, QObject *parent);
+	SessionHistory(const QString &id, QObject *parent);
 
 	//! Get the unique ID of the session
-	QUuid id() const { return m_id; }
+	QString id() const { return m_id; }
 
 	/**
 	 * @brief Get the alias for the session ID (if set)
@@ -90,7 +90,7 @@ public:
 	void setOpword(const QString &opword) { setOpwordHash(passwordhash::hash(opword)); }
 
 	//! Get the starting timestamp
-	virtual QDateTime startTime() const = 0;
+	QDateTime startTime() const { return m_startTime; }
 
 	//! Get the maximum number of users allowed
 	virtual int maxUsers() const = 0;
@@ -307,8 +307,9 @@ protected:
 	SessionBanList m_banlist;
 
 private:
-	QUuid m_id;
+	QString m_id;
 	IdQueue m_idqueue;
+	QDateTime m_startTime;
 
 	uint m_sizeInBytes;
 	uint m_sizeLimit;

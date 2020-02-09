@@ -27,6 +27,7 @@
 #include "notifications.h"
 
 #include "handicaps/handicaps.h"
+#include "widgets/notifbar.h"
 
 #include <QMouseEvent>
 #include <QTabletEvent>
@@ -72,6 +73,9 @@ CanvasView::CanvasView(QWidget *parent)
 
 	setBackgroundBrush(QColor(100,100,100));
 
+	m_notificationBar = new NotificationBar(this);
+	connect(m_notificationBar, &NotificationBar::actionButtonClicked, this, &CanvasView::reconnectRequested);
+
 	m_colorpickcursor = QCursor(QPixmap(":/cursors/colorpicker.png"), 2, 29);
 	m_layerpickcursor = QCursor(QPixmap(":/cursors/layerpicker.png"), 2, 29);
 	m_zoomcursor = QCursor(QPixmap(":/cursors/zoom.png"), 8, 8);
@@ -98,6 +102,11 @@ CanvasView::CanvasView(QWidget *parent)
 	connect(m_handicapCursorWanderTimer, &QTimer::timeout, this, &CanvasView::handicapCursorWander);
 
 	updateShortcuts();
+}
+
+void CanvasView::showDisconnectedWarning(const QString &message)
+{
+	m_notificationBar->show(message, tr("Reconnect"), NotificationBar::RoleColor::Warning);
 }
 
 void CanvasView::updateShortcuts()
